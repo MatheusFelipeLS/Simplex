@@ -12,12 +12,16 @@ GS::GS(Eigen::SparseMatrix<double> &B_param, int n) {
 
 // void GS::reinversion() {}
 // /*
+
+// rapaz, isso parece tá mt mal feito, tqv como as outras pessoas fizeram depois...
+
 void GS::reinversion() {
   
   int n = this->etas_matrix[0].second.size();
 
   Eigen::MatrixXd E = Eigen::MatrixXd::Identity(n,n); 
   Eigen::VectorXd identity_column;
+  Eigen::MatrixXd B_dense = this->B.toDense();
 
   for(int i = 0; i < (int) this->etas_matrix.size(); ++i) {
     
@@ -25,11 +29,13 @@ void GS::reinversion() {
 
     E.col( this->etas_matrix[i].first ) = this->etas_matrix[i].second;
 
-    this->B = this->B * E;
+    B_dense = B_dense * E;
 
     E.col( this->etas_matrix[i].first ) = identity_column;
   
   }
+
+  this->B = B_dense.sparseView();
 
   this->etas_matrix.clear();
 

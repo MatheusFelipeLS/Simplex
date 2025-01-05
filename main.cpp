@@ -17,12 +17,6 @@
 
 int main(int argc, char** argv) {
 
-  // std::string filename = argv[1];
-  // std::string fo = argv[2];
-  // int pp = atoi(argv[3]);
-  // int refactor = atoi(argv[4]);
-
-
   Simplex s = Simplex();
 
   s.solve();
