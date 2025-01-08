@@ -36,10 +36,10 @@ mpsReader::mpsReader()
 {
 }
 
-void mpsReader::read(string fileName, int pre)
+void mpsReader::read(string fileName)
 {
     ifstream readFile(fileName);
-    preprocess = pre;
+    // preprocess = pre;
 
     if (readFile.is_open())
     {
@@ -59,7 +59,7 @@ void mpsReader::read(string fileName, int pre)
         // time = timer.toc();
 
         // output
-        //_printData();
+        // _printData();
     }
     else
     {

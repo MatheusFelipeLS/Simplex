@@ -11,8 +11,9 @@
 #include "Eigen/src/Core/Matrix.h"
 
 #include "GS.h"
+#include "Data.h"
 
-#define INFTY 1e8 // i suppose that i won't find a value bigger than this
+#define INFTY 1e9 // i suppose that i won't find a value bigger than this
 #define E1 1e-5 // it's about the positivity of reduced cost
 #define E2 1e-8 // it's about the choose of entering variable
 #define E3 1e-6 // refers to the equivalene Ax* = b 
@@ -24,6 +25,7 @@ class Simplex {
   public:
   
     Simplex();
+    Simplex(Data *d);
 
     void solve();
 
@@ -33,6 +35,8 @@ class Simplex {
 
     inline double getSolutionValue();
 
+    void updateB(std::pair<int, double> &t, Eigen::VectorXd &d);
+
     void printSolution();
 
   private:
@@ -40,16 +44,7 @@ class Simplex {
     double value; 
     std::string status;
 
-    Eigen::MatrixXd Ab;
-    Eigen::MatrixXd An;
-
-    Eigen::VectorXd xb;
-    Eigen::VectorXd xn;
-    
-    Eigen::VectorXd cb;
-    Eigen::VectorXd cn;
-    
-    Eigen::VectorXd b;
+    Data *data;
 
 };
 

@@ -67,8 +67,6 @@
 #include "Eigen/Sparse"
 #include "Eigen/src/Core/Matrix.h"
 
-#include "Data.h"
-
 using namespace std;
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
@@ -78,7 +76,7 @@ class mpsReader
 public:
     mpsReader(string fileName);
     mpsReader();
-    void read(string fileName, int pre);
+    void read(string fileName);
 
     string Name;
     int n_rows;
