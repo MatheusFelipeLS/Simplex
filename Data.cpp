@@ -2,13 +2,45 @@
 
 Data::Data() { /* ctor */}
 
-Data::Data(int m, int n, Eigen::MatrixXd &N, Eigen::VectorXd &xn, Eigen::VectorXd &cn, Eigen::VectorXd &b) {
+
+Data::Data(int m, int n, Eigen::MatrixXd &N, Eigen::VectorXd &cn, Eigen::VectorXd &b, Eigen::VectorXd &l, Eigen::VectorXd &u) {
+  this->m = m;
+  this->n = n;
+  this->N = N;
+  this->cn = cn;
+  this->b = b;
+  this->l = l;
+  this->u = u;
+
+  this->B = Eigen::MatrixXd::Identity(this->m, this->m);
+
+  this->cb = Eigen::VectorXd( this->m );
+  this->cb.setZero();
+
+  this->xn = Eigen::VectorXd(n-m);
+  for(int i = 0; i < m; i++) {
+    this->xn[i] = i;
+    std::cout << xn[i] << " ";
+  }
+  std::cout << "\n";
+
+  this->xb = Eigen::VectorXd( this->m );
+  for(int i = 0; i < m; i++) {
+    this->xb[i] = i+n;
+  }
+
+}
+
+
+Data::Data(int m, int n, Eigen::MatrixXd &N, Eigen::VectorXd &xn, Eigen::VectorXd &cn, Eigen::VectorXd &b, Eigen::VectorXd &l, Eigen::VectorXd &u) {
   this->m = m;
   this->n = n;
   this->N = N;
   this->xn = xn;
   this->cn = cn;
   this->b = b;
+  this->l = l;
+  this->u = u;
 
   this->B = Eigen::MatrixXd::Identity(this->m, this->m);
 
@@ -81,4 +113,9 @@ Eigen::VectorXd Data::getCb() {
 
 int Data::getXbi(int idx) {
   return this->xb[idx];
+}
+
+
+Eigen::SparseMatrix<double> Data::getSparseB() {
+  return this->B.sparseView();
 }

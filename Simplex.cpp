@@ -15,19 +15,20 @@ int Simplex::computeReducedCosts(Eigen::VectorXd &y) {
   double biggest_reduced_cost = -INFTY;
   int idx_biggest = 0;
 
-  // for(int i = 0; i < this->An.rows(); i++) {
   for(int i = 0; i < this->data->qtCols(); i++) {
 
-    // double reduced_cost = this->cn[i];
     double reduced_cost = this->data->getReducedCost(i);
 
-    // for(int j = 0; j < y.size(); j++) reduced_cost -= y[j] * this->An(i, j);
     for(int j = 0; j < y.size(); j++) reduced_cost -= y[j] * this->data->getElement(i, j);
 
-    if(reduced_cost > biggest_reduced_cost) {
+    if(reduced_cost > 0 && this->data->getXbi()) {
 
       biggest_reduced_cost = reduced_cost;
       idx_biggest = i;
+      
+    } else if(reduced_cost < 0 && this->data->getXbi()) {
+
+      
 
     }
 
@@ -51,7 +52,6 @@ std::pair<int, double> Simplex::computeSmallestT(Eigen::VectorXd &d) {
   
   for(int i = 0; i < d.size(); i++) {
 
-    // if( (d[i] >= 0 && this->b[i] < 0) || (d[i] <= 0 && this->b[i] > 0) ) continue;
     if( (d[i] >= 0 && this->data->getbi(i) < 0) || (d[i] <= 0 && this->data->getbi(i) > 0) ) continue;
 
     if(d[i]) t = this->data->getbi(i) / d[i];
@@ -72,17 +72,21 @@ std::pair<int, double> Simplex::computeSmallestT(Eigen::VectorXd &d) {
 
 }
 
-void Simplex::updateB(std::pair<int, double> &t, Eigen::VectorXd &d) {
+void Simplex::update_b(std::pair<int, double> &t, Eigen::VectorXd &d) {
+
   for(int i = 0; i < this->data->qtRows(); i++) {
+
     if(i != t.first) this->data->setbi(i, this->data->getbi(i) - (t.second * d[i]));
     else this->data->setbi(i, t.second);
+  
   }
 }
 
 
 void Simplex::solve() {
 
-  GS gs = GS();
+  Eigen::SparseMatrix<double> B_param = this->data->getSparseB();
+  GS gs = GS(B_param, this->data->qtRows() );
 
   Eigen::VectorXd y;
   Eigen::VectorXd d;
@@ -136,7 +140,7 @@ void Simplex::solve() {
     gs.addEtaColumn(t.first, d);
 
     
-    updateB(t, d);
+    update_b(t, d);
 
 
     this->data->swapBNRow(t.first, choosen);

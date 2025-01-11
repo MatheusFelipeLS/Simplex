@@ -16,9 +16,21 @@ class Data {
       int m, 
       int n,  
       Eigen::MatrixXd &N, 
+      Eigen::VectorXd &cn,
+      Eigen::VectorXd &b,
+      Eigen::VectorXd &l,
+      Eigen::VectorXd &u
+    );
+    
+    Data(
+      int m, 
+      int n,  
+      Eigen::MatrixXd &N, 
       Eigen::VectorXd &xn,
       Eigen::VectorXd &cn,
-      Eigen::VectorXd &b
+      Eigen::VectorXd &b,
+      Eigen::VectorXd &l,
+      Eigen::VectorXd &u
     );
 
     int qtCols();
@@ -28,6 +40,7 @@ class Data {
     
     double getElement(int i, int j); 
     
+    Eigen::SparseMatrix<double> getSparseB();
     Eigen::VectorXd getRow(int row_idx);
 
     int getXbi(int idx);
@@ -52,11 +65,15 @@ class Data {
 
     Eigen::VectorXd xn;
     Eigen::VectorXd xb;
+    Eigen::VectorXd x;
 
     Eigen::VectorXd cb;
     Eigen::VectorXd cn;
     
     Eigen::VectorXd b;
+
+    Eigen::VectorXd l;
+    Eigen::VectorXd u;
 
 };
 

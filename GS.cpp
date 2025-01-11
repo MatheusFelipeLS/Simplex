@@ -10,7 +10,6 @@ GS::GS(Eigen::SparseMatrix<double> &B_param, int n) {
 
 }
 
-// void GS::reinversion() {}
 // /*
 
 // rapaz, isso parece tá mt mal feito, tqv como as outras pessoas fizeram depois...
@@ -19,25 +18,20 @@ void GS::reinversion() {
   
   int n = this->etas_matrix[0].second.size();
 
-  Eigen::MatrixXd E = Eigen::MatrixXd::Identity(n,n); 
-  Eigen::VectorXd identity_column;
   Eigen::MatrixXd B_dense = this->B.toDense();
 
   for(int i = 0; i < (int) this->etas_matrix.size(); ++i) {
     
-    identity_column = E.col( this->etas_matrix[i].first );
-
-    E.col( this->etas_matrix[i].first ) = this->etas_matrix[i].second;
-
-    B_dense = B_dense * E;
-
-    E.col( this->etas_matrix[i].first ) = identity_column;
+    B_dense.row( this->etas_matrix[i].first ) = this->etas_matrix[i].second.transpose() * B_dense;
   
   }
 
   this->B = B_dense.sparseView();
 
   this->etas_matrix.clear();
+
+  umfpack_di_free_symbolic (&this->Symbolic);
+  umfpack_di_free_numeric (&this->Numeric);
 
   LUDecomposition(n);
 }
@@ -54,6 +48,8 @@ void GS::addEtaColumn(int eta_idx, Eigen::VectorXd &eta_column) {
 
 void GS::LUDecomposition(int n) {
 
+  this->null = (double *) NULL ;
+  
   (void) umfpack_di_symbolic (
     n,
     n, 
@@ -105,11 +101,11 @@ Eigen::VectorXd GS::BTRAN(Eigen::VectorXd &y, Eigen::VectorXd &c_b) {
   }
 
   // resolver v * LU = y, pq tem casos que B != I (equivalente a executar os passos 3, 4, 5 e 6 da BTRAN do livro)
-  /*
+  // /*
   Eigen::VectorXd y_aux = y; // talvez n seja necessário fazer essa cópia
 
   (void) umfpack_di_solve(
-    UMFPACK_Aat, //Aat usa a transposta de B, e B^{T} * y = y^{T} * B^{T} (acho q n precisa especificar q é a transposta de y)
+    UMFPACK_A, 
     this->B.outerIndexPtr(), 
     this->B.innerIndexPtr(), 
     this->B.valuePtr(), 
@@ -141,9 +137,10 @@ Eigen::VectorXd GS::BTRAN(Eigen::VectorXd &y, Eigen::VectorXd &c_b) {
 Eigen::VectorXd GS::FTRAN(Eigen::VectorXd &d, Eigen::VectorXd &a) {
 
   // resolver B_0 * d = a (equivalente a executar os passos 1, 2, 3 e 4 da FTRAN do livro)
-  /*
+  // /* 
+  // lembrando q meu B tá transposto, por isso q eu to usando Aat aqui e não na BTRAN 
   (void) umfpack_di_solve(
-    UMFPACK_A, 
+    UMFPACK_Aat, //Aat usa a transposta de B, e B^{T} * y = y^{T} * B^{T} (acho q n precisa especificar q é a transposta de y)
     this->B.outerIndexPtr(), 
     this->B.innerIndexPtr(), 
     this->B.valuePtr(), 

@@ -114,17 +114,22 @@ int main(int argc, char** argv) {
   // Matriz A esparsa
   Eigen::SparseMatrix<double> A = A_dense.sparseView();
 
-  std::cerr << "l: " << l << std::endl;
-  std::cerr << "u: " << u << std::endl;
-  std::cerr << "A_dense: " << A_dense << std::endl;
-  std::cerr << "b: " << b << std::endl;
-  std::cerr << "c: " << c << std::endl;
-  std::cerr << "m: " << m << std::endl;
-  std::cerr << "n: " << n << std::endl;
+  std::cerr << "l:\n" << l << std::endl;
+  std::cerr << "\nu:\n" << u << std::endl;
+  std::cerr << "\nA_dense:\n" << A_dense << std::endl;
+  std::cerr << "\nb:\n" << b << std::endl;
+  std::cerr << "\nc:\n" << c << std::endl;
+  std::cerr << "\nm: " << m << std::endl;
+  std::cerr << "\nn: " << n << std::endl;
 
+  Eigen::MatrixXd A_transpose = A_dense.transpose();
+  Data *d = new Data(m, n, A_transpose, c, b, l, u);
   getchar();
   
+
+
 ////////// artificial instance
+
   int cols = 4, rows = 3;
 
   std::vector<std::vector<double>> A_in = {
@@ -162,7 +167,7 @@ int main(int argc, char** argv) {
     xn[i] = i+1;
   }
 
-  Data *data = new Data(rows, cols, An, xn, cn, rhs);
+  Data *data = new Data(rows, cols, An, xn, cn, rhs, l, u);
 
   Simplex s = Simplex(data);
 
@@ -171,6 +176,8 @@ int main(int argc, char** argv) {
   s.printSolution();
 
   delete data;
+  delete d;
 
 	return 0;
+
 }
