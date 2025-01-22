@@ -2,6 +2,7 @@
 #define DATA_H
 
 #include <iostream>
+#include <limits>
 #include "Eigen/Dense"
 #include "Eigen/Sparse"
 #include "Eigen/src/Core/Matrix.h"
@@ -15,66 +16,53 @@ class Data {
     Data(
       int m, 
       int n,  
-      Eigen::MatrixXd &N, 
-      Eigen::VectorXd &cn,
-      Eigen::VectorXd &b,
-      Eigen::VectorXd &l,
-      Eigen::VectorXd &u
-    );
-    
-    Data(
-      int m, 
-      int n,  
-      Eigen::MatrixXd &N, 
-      Eigen::VectorXd &xn,
-      Eigen::VectorXd &cn,
+      Eigen::VectorXd &c,
+      Eigen::SparseMatrix<double> &A,
       Eigen::VectorXd &b,
       Eigen::VectorXd &l,
       Eigen::VectorXd &u
     );
 
-    int qtCols();
     int qtRows();
+    int qtCols();
 
-    double getReducedCost(int idx);
+    double getReducedCost(int idx, Eigen::VectorXd &y);
+    double getC(int idx);
+    double getX(int idx);
+    double getUB(int idx);
+    double getLB(int idx);
+    Eigen::VectorXd getCol(int idx);
+
+    void updateX(double t, int idx_ev, Eigen::VectorXd &d, Eigen::VectorXd &B, int signal);
     
-    double getElement(int i, int j); 
-    
-    Eigen::SparseMatrix<double> getSparseB();
-    Eigen::VectorXd getRow(int row_idx);
+    Eigen::SparseMatrix<double> getA();
 
-    int getXbi(int idx);
-
-    double getbi(int idx);
-    void setbi(int idx, double value);
-    double getCbi(int idx);
-    Eigen::VectorXd getCb();
-
-    void swapBNRow(int b_idx, int n_idx);
-    void swapXBNElement(int b_idx, int n_idx);
-    void swapCBNElement(int b_idx, int n_idx);
-
+    double calculateFO();
 
   private:
 
     int m;
     int n;
 
-    Eigen::MatrixXd N; 
-    Eigen::MatrixXd B;
+    Eigen::VectorXd c;
 
-    Eigen::VectorXd xn;
-    Eigen::VectorXd xb;
+    Eigen::SparseMatrix<double> A;
+
     Eigen::VectorXd x;
 
-    Eigen::VectorXd cb;
-    Eigen::VectorXd cn;
-    
     Eigen::VectorXd b;
 
     Eigen::VectorXd l;
     Eigen::VectorXd u;
 
+
+    //////////////////////// será inútil
+    // Eigen::VectorXd xn;
+    // Eigen::VectorXd xb;
+
+    // Eigen::VectorXd cb;
+    // Eigen::VectorXd cn;
+
 };
 
-#endif
+#endif // DATA_H

@@ -1,165 +1,205 @@
 #include "Simplex.h"
 
-Simplex::Simplex() { /* ctor */ }
+Simplex::Simplex() { 
+  /* ctor */ 
+  B = Eigen::VectorXd( data->qtRows() );
+  N = Eigen::VectorXd( data->qtCols() - data->qtRows() );
 
-Simplex::Simplex(Data *d) {  this->data = d;  }
+  B[0] = 0;
+  B[1] = 1;
 
+  for(int i = 0; i < data->qtCols() - data->qtRows(); i++) N[i] = i + data->qtRows();
+}
 
-inline double Simplex::getSolutionValue() {
-  return this->value;
+Simplex::Simplex(Data *d) {  
+  
+  this->data = d;  
+
+  B = Eigen::VectorXd( data->qtRows() );
+  N = Eigen::VectorXd( data->qtCols() - data->qtRows() );
+
+  for(int i = 0; i < data->qtRows(); i++) B[i] = i + data->qtCols() - data->qtRows();
+  
+  for(int i = 0; i < data->qtCols() - data->qtRows(); i++) N[i] = i;
+
+  std::cout << "B" << std::endl;
+  for(int i = 0; i < data->qtRows(); i++) std::cout << B[i] << " ";
+  std::cout << std::endl;
+  
+  std::cout << "N" << std::endl;
+  for(int i = 0; i < data->qtCols() - data->qtRows(); i++) std::cout << N[i] << " ";
+  std::cout << std::endl;
+
+  getchar();
+  
 }
 
 
-int Simplex::computeReducedCosts(Eigen::VectorXd &y) {
+Simplex::~Simplex() {
+  delete gs;
+}
+
+
+std::pair<int, int> Simplex::findEnteringVariable(Eigen::VectorXd &y) {
   
-  double biggest_reduced_cost = -INFTY;
-  int idx_biggest = 0;
+  double biggest_reduced_cost = 0;
+  int idx_biggest = -1;
+  int signal = 0;
 
-  for(int i = 0; i < this->data->qtCols(); i++) {
+  for(int i = 0; i < N.size(); i++) {
 
-    double reduced_cost = this->data->getReducedCost(i);
+    double reduced_cost = data->getReducedCost(N[i], y);
 
-    for(int j = 0; j < y.size(); j++) reduced_cost -= y[j] * this->data->getElement(i, j);
-
-    if(reduced_cost > 0 && this->data->getXbi()) {
-
+    if(data->getX(N[i]) < data->getUB(N[i]) && reduced_cost > E1 && reduced_cost > biggest_reduced_cost) {
+      signal = 1;
       biggest_reduced_cost = reduced_cost;
       idx_biggest = i;
-      
-    } else if(reduced_cost < 0 && this->data->getXbi()) {
-
-      
-
     }
-
-    std::cout << "x[" << i+1 << "]: " << reduced_cost << std::endl;
-
-  }
-
-  if(biggest_reduced_cost < E1) return -1;
-
-  return idx_biggest;
-
-}
-
-
-std::pair<int, double> Simplex::computeSmallestT(Eigen::VectorXd &d) {
-
-  double small_T = INFTY;
-  int idx_small_T = 0;
-  bool unbounded = true;
-  double t;
-  
-  for(int i = 0; i < d.size(); i++) {
-
-    if( (d[i] >= 0 && this->data->getbi(i) < 0) || (d[i] <= 0 && this->data->getbi(i) > 0) ) continue;
-
-    if(d[i]) t = this->data->getbi(i) / d[i];
-    else t = INFTY;
     
-    unbounded = false;
-
-    if(t < small_T) {
-      small_T = t;
-      idx_small_T = i;
+    else if(data->getX(N[i]) > data->getLB(N[i]) && reduced_cost < -E1 && std::abs(reduced_cost) > biggest_reduced_cost) {
+      signal = -1;
+      biggest_reduced_cost = std::abs(reduced_cost);
+      idx_biggest = i;
     }
+
+    std::cout << "x[" << N[i] << "]: " << reduced_cost << "; data->getX(N[i]): " << data->getX(N[i]) 
+    << "; data->getLB(N[i]): " << data->getLB(N[i]) << "; data->getUB(N[i]): " << data->getUB(N[i]) << std::endl <<std::endl;
 
   }
 
-  if(unbounded) return std::make_pair(-1, 0);
-  
-  return std::make_pair(idx_small_T, small_T);
+  std::cout << "idx_biggest: " << idx_biggest << "; signal: " << signal << std::endl;
+
+  return std::make_pair(idx_biggest, signal);
 
 }
 
-void Simplex::update_b(std::pair<int, double> &t, Eigen::VectorXd &d) {
 
-  for(int i = 0; i < this->data->qtRows(); i++) {
+std::pair<int, double> Simplex::chooseLeavingVariable(Eigen::VectorXd &d, int ent_var, int signal) {
 
-    if(i != t.first) this->data->setbi(i, this->data->getbi(i) - (t.second * d[i]));
-    else this->data->setbi(i, t.second);
-  
+  double t;
+  double maxt = INFTY;
+  int idx_leaving_variable = -1;
+
+
+  if(signal > 0) maxt = (data->getUB(ent_var) - data->getX(ent_var));
+
+  else maxt = (data->getX(ent_var) - data->getLB(ent_var));
+
+
+  for(int i = 0; i < B.size(); i++) {
+
+    if(maxt <= E1) return std::make_pair(idx_leaving_variable, 0.00);
+
+    double x = data->getX( B[i] );
+
+      
+    if( (signal > 0 && d[i] > 0) || (signal < 0 && d[i] < 0) ) {
+      t = signal * (x - (data->getLB( B[i] )) ) / d[i];
+
+      if(t >= 0 && t < maxt) {
+        maxt = t;
+        idx_leaving_variable = i;
+      }
+
+    } else if( (signal > 0 && d[i] < 0) || (signal < 0 && d[i] > 0) ) {
+      t = signal * (x - (data->getUB( B[i] )) ) / d[i];
+
+      if(t >= 0 && t < maxt) {
+        maxt = t;
+        idx_leaving_variable = i;
+      }
+
+    }
+
   }
+  
+  return std::make_pair(idx_leaving_variable, maxt);
+
 }
 
 
 void Simplex::solve() {
 
-  Eigen::SparseMatrix<double> B_param = this->data->getSparseB();
-  GS gs = GS(B_param, this->data->qtRows() );
+  Eigen::MatrixXd B_aux = Eigen::MatrixXd::Identity(data->qtRows(), data->qtRows());
 
-  Eigen::VectorXd y;
-  Eigen::VectorXd d;
+  Eigen::SparseMatrix<double> B_param = B_aux.sparseView(); 
+
+  gs = new GS( B_param, data->qtRows() );
+
+  Eigen::VectorXd y(data->qtRows());
+  Eigen::VectorXd d(data->qtRows());
   Eigen::VectorXd aux;
+
+  bool newEtaCol = true;
 
   while(1) {
 
-    // y = this->cb;
-    y = aux = this->data->getCb();
+    if(newEtaCol) {
 
+      for(int i = 0; i < data->qtRows(); i++) y[i] = data->getC(B[i]);
 
-    // solving yB = c
-    gs.BTRAN(y, aux);
-    
+      aux = y;
 
-    int choosen = computeReducedCosts(y);
-    std::cout << "idx reduced: " << choosen << std::endl;
+      gs->BTRAN(y, aux);  // solving yB = c
 
-    if(choosen == -1) {
+    }
+
+    auto [idx_entering_variable, signal] = findEnteringVariable(y);
+
+    if(idx_entering_variable == -1) {
 
       this->status = "Optimal";
       break;
 
     }
 
-    
-    // std::cout << "Choose the variable to enter the basis (it reduced cost must be positive): ";
-    // std::cin >> choosen;
-    // choosen--;
+    aux = d = data->getCol( N[ idx_entering_variable ] );
 
-    // Eigen::VectorXd aux = d = this->An.row(choosen);
-    aux = d = this->data->getRow(choosen);
-    gs.FTRAN(d, aux);
+    gs->FTRAN(d, aux);  // solving Bd = a
 
-    std::cout << "aux:\n" << aux << std::endl;
-    std::cout << "d:\n" << d << std::endl;
+    auto [idx_leaving_variable, t] = chooseLeavingVariable(d, N[idx_entering_variable], signal);
 
-
-    auto t = computeSmallestT(d);
-
-    if(t.first == -1) {
+    if(t == INFTY) {
 
       this->status = "Unbounded";
-      this->value = INFTY;
+      this->value = t;
       return;
 
     }
 
-    std::cout << "value: " << t.second << "; idx: " << t.first << std::endl;
+    data->updateX(t, N[idx_entering_variable], d, B, signal);  
+  
+    if(idx_leaving_variable > 0) {
 
-    gs.addEtaColumn(t.first, d);
+      newEtaCol = true;
 
-    
-    update_b(t, d);
+      gs->addEtaColumn(idx_leaving_variable, d);
 
+      std::swap(N[ idx_entering_variable ], B[ idx_leaving_variable ]);
 
-    this->data->swapBNRow(t.first, choosen);
-    this->data->swapXBNElement(t.first, choosen);
-    this->data->swapCBNElement(t.first, choosen);
+    } else {
+      newEtaCol = false;
+    }
 
   }
 
-  this->value = 0;
-  for(int i = 0; i < this->data->qtRows(); i++) this->value += ( this->data->getbi(i) * this->data->getCbi(i) );
+  value = data->calculateFO();
 
 }
 
 
 void Simplex::printSolution() {
-  std::cout << "\nOptimal: " << this->value << std::endl; 
 
-  for(int i = 0; i < this->data->qtRows(); i++) 
-    std::cout << "x_" << this->data->getXbi(i) << ": " << this->data->getbi(i) << ";  ";
+  std::cout << "\nStatus: " << this->status << std::endl; 
+  std::cout << "\nOF value: " << this->value << std::endl; 
+
+  for(int i = 0; i < this->data->qtCols() - this->data->qtRows(); i++) 
+    std::cout << "x_" << i+1 << ": " << this->data->getX(i) << ";  ";
   std::cout << "\n"; 
 
+}
+
+
+inline double Simplex::getSolutionValue() {
+  return this->value;
 }

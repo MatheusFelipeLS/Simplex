@@ -108,66 +108,38 @@ int main(int argc, char** argv) {
     c = mps.c;
     m = mps.n_rows_eq + mps.n_rows_inq;
     n = mps.n_cols + mps.n_rows_inq + mps.n_rows_eq;
+    std::cout << "mps.n_cols: " << mps.n_cols << "; mps.n_rows_inq: " << mps.n_rows_inq << "; mps.n_rows_eq: " 
+    << mps.n_rows_eq << std::endl;
 
   }
 
   // Matriz A esparsa
   Eigen::SparseMatrix<double> A = A_dense.sparseView();
 
-  std::cerr << "l:\n" << l << std::endl;
-  std::cerr << "\nu:\n" << u << std::endl;
+  std::cerr << "l:\n" << l.transpose() << std::endl;
+  std::cerr << "\nu:\n" << u.transpose() << std::endl;
   std::cerr << "\nA_dense:\n" << A_dense << std::endl;
-  std::cerr << "\nb:\n" << b << std::endl;
-  std::cerr << "\nc:\n" << c << std::endl;
+  std::cerr << "\nb:\n" << b.transpose() << std::endl;
+  std::cerr << "\nc:\n" << c.transpose() << std::endl;
   std::cerr << "\nm: " << m << std::endl;
   std::cerr << "\nn: " << n << std::endl;
 
-  Eigen::MatrixXd A_transpose = A_dense.transpose();
-  Data *d = new Data(m, n, A_transpose, c, b, l, u);
+  std::cerr << "\n3: " << INFTY - 3 << std::endl;
+  std::cerr << "\n4: " << INFTY / 4 << std::endl;
+  std::cerr << "\n5: " << INFTY + 5 << std::endl;
+  std::cerr << "\n6: " << INFTY * 6 << std::endl;
+  std::cerr << "\n7: " << (INFTY == INFTY) << std::endl;
+  std::cerr << "\n8: " << (INFTY <= INFTY) << std::endl;
+  std::cerr << "\n9: " << (INFTY >= INFTY) << std::endl;
+  std::cerr << "\n10: " << (INFTY < INFTY) << std::endl;
+  std::cerr << "\n11: " << (INFTY > INFTY) << std::endl;
+  std::cerr << "\n12: " << ((-1) * (0-(-INFTY))) << std::endl;
+  std::cerr << "\n13: " << (INFTY == (INFTY / 4)) << std::endl;
+
+
+  Data *data = new Data(m, n, c, A, b, l, u);
+  // Data *data = new Data();
   getchar();
-  
-
-
-////////// artificial instance
-
-  int cols = 4, rows = 3;
-
-  std::vector<std::vector<double>> A_in = {
-    {3, 1, 4},
-    {2, 1, 3},
-    {1, 1, 3},
-    {2, 1, 4}
-  };
-
-  std::vector<double> b_in = {225, 117, 420};
-  std::vector<double> c_in = {19, 13, 12, 17};
-
-  Eigen::MatrixXd An = Eigen::MatrixXd(cols, rows);
-  for(int i = 0; i < An.innerSize(); i++) {
-
-    for(int j = 0; j < An.row(i).size(); j++) {
-
-      An.row(i)[j] = A_in[i][j];
-
-    }
-  } 
-
-  Eigen::VectorXd rhs = Eigen::VectorXd(rows);
-  for(int i = 0; i < rows; i++) {
-    rhs[i] = b_in[i];
-  }
-
-  Eigen::VectorXd cn = Eigen::VectorXd(cols);
-  for(int i = 0; i < cols; i++) {
-    cn[i] = c_in[i];
-  }
-
-  Eigen::VectorXd xn = Eigen::VectorXd(cols);
-  for(int i = 0; i < cols; i++) {
-    xn[i] = i+1;
-  }
-
-  Data *data = new Data(rows, cols, An, xn, cn, rhs, l, u);
 
   Simplex s = Simplex(data);
 
@@ -176,7 +148,6 @@ int main(int argc, char** argv) {
   s.printSolution();
 
   delete data;
-  delete d;
 
 	return 0;
 

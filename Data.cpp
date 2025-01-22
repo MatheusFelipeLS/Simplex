@@ -1,121 +1,144 @@
 #include "Data.h"
 
-Data::Data() { /* ctor */}
+Data::Data() { 
+  /* ctor */
+  std::vector<std::vector<double>> A = {
+		{3,1,5,6,9,4,3,4,7,6,4,5},
+		{1,0,9,5,8,1,2,7,8,7,9,1}
+  };
+
+  std::vector<double> b = {72,62};
+  std::vector<double> c = {2, 1, -2, -2, 3, 2, 3,-4,0,-2,-3,3};
+	std::vector<double> l = {-5,-std::numeric_limits<double>::infinity(),-4,-2,2,0,0,3,-std::numeric_limits<double>::infinity(),-std::numeric_limits<double>::infinity(),-std::numeric_limits<double>::infinity(),-std::numeric_limits<double>::infinity()};
+	std::vector<double> u = {std::numeric_limits<double>::infinity(),3,-2,3,5,1,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),0,5,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity()};
+  std::vector<double> x = {1, 0, -2, 3,2,0, 0, 3, 0, 5, -1, 1};
+
+  this->m = 2;
+  this->n = 12;
+
+  std::cout << "1\n";
+  getchar();  
+
+  Eigen::MatrixXd sla = Eigen::MatrixXd(m,n);
+  for(int i = 0; i < m; i++) {
+    for(int j = 0; j < n; j++) {
+      sla(i, j) = A[i][j];
+    }
+  }
+
+  std::cout << "2\n";
+  getchar();  
+
+  this->A = sla.sparseView();
+
+  std::cout << "3\n";
+  getchar();  
+
+  this->b = Eigen::VectorXd(m);
+  for(int i = 0; i < m; i++) {
+    this->b[i] = b[i];
+  }
+
+  std::cout << "4\n";
+  getchar();  
+
+  this->c = Eigen::VectorXd(n);
+  for(int i = 0; i < n; i++) {
+    this->c[i] = c[i];
+  }
+
+  std::cout << "5\n";
+  getchar();  
+
+  this->l = Eigen::VectorXd(n);
+  for(int i = 0; i < n; i++) {
+    this->l[i] = l[i];
+  }
+
+  std::cout << "6\n";
+  getchar();  
+
+  this->u = Eigen::VectorXd(n);
+  for(int i = 0; i < n; i++) {
+    this->u[i] = u[i];
+  }
+
+  std::cout << "7\n";
+  getchar();  
+
+  this->x = Eigen::VectorXd(n);
+  for(int i = 0; i < n; i++) {
+    this->x[i] = x[i];
+  }
+
+  std::cout << "8\n";
+  getchar();  
+
+}
 
 
-Data::Data(int m, int n, Eigen::MatrixXd &N, Eigen::VectorXd &cn, Eigen::VectorXd &b, Eigen::VectorXd &l, Eigen::VectorXd &u) {
+Data::Data(int m, int n, Eigen::VectorXd &c, Eigen::SparseMatrix<double> &A, Eigen::VectorXd &b, Eigen::VectorXd &l, Eigen::VectorXd &u) {
+
   this->m = m;
   this->n = n;
-  this->N = N;
-  this->cn = cn;
+  this->c = c;
+  this->A = A;
   this->b = b;
   this->l = l;
   this->u = u;
 
-  this->B = Eigen::MatrixXd::Identity(this->m, this->m);
+  this->x = Eigen::VectorXd(n);
+  for(int i = 0; i < n-m; i++) x[i] = 0;
+  for(int i = 0; i < m; i++) x[i+n-m] = b[i];
+}
 
-  this->cb = Eigen::VectorXd( this->m );
-  this->cb.setZero();
 
-  this->xn = Eigen::VectorXd(n-m);
-  for(int i = 0; i < m; i++) {
-    this->xn[i] = i;
-    std::cout << xn[i] << " ";
+int Data::qtRows() { return m; }
+
+
+int Data::qtCols() { return n; }
+
+
+double Data::getC(int idx) { return c[idx]; }
+
+
+double Data::getX(int idx) { return x[idx]; }
+
+
+double Data::getUB(int idx) { return u[idx]; }
+
+
+double Data::getLB(int idx) { return l[idx]; }
+
+
+Eigen::VectorXd Data::getCol(int idx) { return A.col(idx); }
+
+
+Eigen::SparseMatrix<double> Data::getA() { return A; }
+
+
+void Data::updateX(double t, int idx_ev, Eigen::VectorXd &d, Eigen::VectorXd &B, int signal) {
+    
+  x[ idx_ev ] += (t * signal);
+  
+  for(int i = 0; i < m; i++) x[ B[i] ] -= ( (t * d[i]) * signal );
+
+}
+
+
+double Data::getReducedCost(int idx, Eigen::VectorXd &y) { 
+  std::cout << "c[idx]: " << c[idx] << "; y.t: " << y.transpose() << "; A.c: " << A.col(idx).transpose();
+  return c[idx] - (y.transpose() * A.col(idx)); 
+}
+
+
+double Data::calculateFO() {
+
+  double value = 0;
+  for(int i = 0; i < n-m; i++) {
+    value += (x[i] * c[i]);
   }
-  std::cout << "\n";
 
-  this->xb = Eigen::VectorXd( this->m );
-  for(int i = 0; i < m; i++) {
-    this->xb[i] = i+n;
-  }
+  return value;
 
-}
-
-
-Data::Data(int m, int n, Eigen::MatrixXd &N, Eigen::VectorXd &xn, Eigen::VectorXd &cn, Eigen::VectorXd &b, Eigen::VectorXd &l, Eigen::VectorXd &u) {
-  this->m = m;
-  this->n = n;
-  this->N = N;
-  this->xn = xn;
-  this->cn = cn;
-  this->b = b;
-  this->l = l;
-  this->u = u;
-
-  this->B = Eigen::MatrixXd::Identity(this->m, this->m);
-
-  this->cb = Eigen::VectorXd( this->m );
-  this->cb.setZero();
-
-  this->xb = Eigen::VectorXd( this->m );
-  for(int i = 0; i < m; i++) {
-    this->xb[i] = i+n+1;
-  }
-
-}
-
-
-int Data::qtRows() { return this->m; }
-
-
-int Data::qtCols() { return this->n; }
-
-
-void Data::swapBNRow(int b_idx, int n_idx) {
-  this->N.row(n_idx).swap(this->B.row(b_idx));
-}
-
-
-void Data::swapXBNElement(int b_idx, int n_idx) {
-  std::swap(this->xb[b_idx], this->xn[n_idx]);
-}
-
-
-void Data::swapCBNElement(int b_idx, int n_idx) {
-  std::swap(this->cb[b_idx], this->cn[n_idx]);
-}
-
-
-double Data::getReducedCost(int idx) {
-  return this->cn[idx];
-}
-
-
-double Data::getElement(int i, int j) {
-  return this->N(i, j);
-}
-
-
-Eigen::VectorXd Data::getRow(int row_idx) {
-  return this->N.row(row_idx);
-}
-
-
-double Data::getbi(int idx) {
-  return this->b[idx];
-}
-
-
-void Data::setbi(int idx, double value) {
-  this->b[idx] = value;
-}
-
-
-double Data::getCbi(int idx) {
-  return this->cb[idx];
-}
-
-
-Eigen::VectorXd Data::getCb() {
-  return this->cb;
-}
-
-
-int Data::getXbi(int idx) {
-  return this->xb[idx];
-}
-
-
-Eigen::SparseMatrix<double> Data::getSparseB() {
-  return this->B.sparseView();
 }

@@ -1,6 +1,6 @@
 #include "GS.h"
 
-GS::GS() {}
+GS::GS() { /* ctor */ }
 
 
 GS::GS(Eigen::SparseMatrix<double> &B_param, int n) {
@@ -8,6 +8,12 @@ GS::GS(Eigen::SparseMatrix<double> &B_param, int n) {
   this->B = B_param;
   LUDecomposition(n);
 
+}
+
+
+GS::~GS() {
+  umfpack_di_free_symbolic(&Symbolic);
+  umfpack_di_free_symbolic(&Numeric);
 }
 
 // /*
@@ -50,26 +56,9 @@ void GS::LUDecomposition(int n) {
 
   this->null = (double *) NULL ;
   
-  (void) umfpack_di_symbolic (
-    n,
-    n, 
-    this->B.outerIndexPtr(), 
-    this->B.innerIndexPtr(), 
-    this->B.valuePtr(), 
-    &this->Symbolic, 
-    this->null, 
-    this->null
-  );
+  (void) umfpack_di_symbolic (n,n, B.outerIndexPtr(), B.innerIndexPtr(), B.valuePtr(), &Symbolic, null, null);
 
-  (void) umfpack_di_numeric (
-    this->B.outerIndexPtr(), 
-    this->B.innerIndexPtr(), 
-    this->B.valuePtr(), 
-    this->Symbolic,
-    &this->Numeric, 
-    this->null, 
-    this->null
-  );
+  (void) umfpack_di_numeric (B.outerIndexPtr(), B.innerIndexPtr(), B.valuePtr(), Symbolic, &Numeric, null, null);
 
 }
 
@@ -86,6 +75,9 @@ void GS::LUDecomposition(int n) {
 
 Eigen::VectorXd GS::BTRAN(Eigen::VectorXd &y, Eigen::VectorXd &c_b) {
 
+  // std::cout << "btran\n";
+  // std::cout << "y\n" << y << "\nc_b\n" << c_b << "\n";
+
   for(int i = this->etas_matrix.size()-1; i >= 0; i--) {
 
     for(int j = 0; j < this->etas_matrix[i].first; j++) {
@@ -100,22 +92,16 @@ Eigen::VectorXd GS::BTRAN(Eigen::VectorXd &y, Eigen::VectorXd &c_b) {
 
   }
 
+  // std::cout << "y\n" << y.transpose() << "\nc_b\n" << c_b.transpose() << "\n";
   // resolver v * LU = y, pq tem casos que B != I (equivalente a executar os passos 3, 4, 5 e 6 da BTRAN do livro)
   // /*
-  Eigen::VectorXd y_aux = y; // talvez n seja necessário fazer essa cópia
 
-  (void) umfpack_di_solve(
-    UMFPACK_A, 
-    this->B.outerIndexPtr(), 
-    this->B.innerIndexPtr(), 
-    this->B.valuePtr(), 
-    y.data(), 
-    y_aux.data(), 
-    this->Numeric, 
-    this->null, 
-    this->null
-  );
+  //Aat usa a transposta de B, e B^{T} * y = y^{T} * B^{T} (acho q n precisa especificar q é a transposta de y)
+  (void) umfpack_di_solve(UMFPACK_Aat, B.outerIndexPtr(), B.innerIndexPtr(), B.valuePtr(), y.data(), c_b.data(), Numeric, null, null);
   // */
+
+  // std::cout << "y\n" << y.transpose() << "\nc_b\n" << c_b.transpose() << "\n";
+  getchar();
 
   return y;
 
@@ -137,19 +123,8 @@ Eigen::VectorXd GS::BTRAN(Eigen::VectorXd &y, Eigen::VectorXd &c_b) {
 Eigen::VectorXd GS::FTRAN(Eigen::VectorXd &d, Eigen::VectorXd &a) {
 
   // resolver B_0 * d = a (equivalente a executar os passos 1, 2, 3 e 4 da FTRAN do livro)
-  // /* 
-  // lembrando q meu B tá transposto, por isso q eu to usando Aat aqui e não na BTRAN 
-  (void) umfpack_di_solve(
-    UMFPACK_Aat, //Aat usa a transposta de B, e B^{T} * y = y^{T} * B^{T} (acho q n precisa especificar q é a transposta de y)
-    this->B.outerIndexPtr(), 
-    this->B.innerIndexPtr(), 
-    this->B.valuePtr(), 
-    d.data(), 
-    a.data(), 
-    this->Numeric, 
-    this->null, 
-    this->null
-  );
+  // /*  
+  (void) umfpack_di_solve(UMFPACK_A, B.outerIndexPtr(), B.innerIndexPtr(), B.valuePtr(), d.data(), a.data(), Numeric, null, null);
   // */
 
   for(long unsigned i = 0; i < this->etas_matrix.size(); i++) {

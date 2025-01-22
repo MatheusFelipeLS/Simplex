@@ -16,6 +16,7 @@ class GS {
   public:
     GS();
     GS(Eigen::SparseMatrix<double> &B_param, int n);
+    ~GS();
 
     void LUDecomposition(int n);
 

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <limits>
 #include <umfpack.h>
 
 #include "Eigen/Dense"
@@ -13,7 +14,7 @@
 #include "GS.h"
 #include "Data.h"
 
-#define INFTY 1e9
+#define INFTY std::numeric_limits<double>::infinity()
 #define E1 1e-5 // it's about the positivity of reduced cost
 #define E2 1e-8 // it's about the choose of entering variable
 #define E3 1e-6 // refers to the equivalene Ax* = b 
@@ -26,16 +27,15 @@ class Simplex {
   
     Simplex();
     Simplex(Data *d);
+    ~Simplex();
 
     void solve();
 
-    int computeReducedCosts(Eigen::VectorXd &y);
-
-    std::pair<int, double> computeSmallestT(Eigen::VectorXd &d);
+    std::pair<int, int> findEnteringVariable(Eigen::VectorXd &y);
+    
+    std::pair<int, double> chooseLeavingVariable(Eigen::VectorXd &d, int ent_var, int signal);
 
     inline double getSolutionValue();
-
-    void update_b(std::pair<int, double> &t, Eigen::VectorXd &d);
 
     void printSolution();
 
@@ -45,6 +45,11 @@ class Simplex {
     std::string status;
 
     Data *data;
+
+    GS *gs;
+
+    Eigen::VectorXd B;
+    Eigen::VectorXd N; 
 
 };
 
