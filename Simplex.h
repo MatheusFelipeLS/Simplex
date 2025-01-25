@@ -31,13 +31,15 @@ class Simplex {
 
     void solve();
 
-    std::pair<int, int> findEnteringVariable(Eigen::VectorXd &y);
+    std::pair<int, int> chooseEnteringVariable(Eigen::VectorXd &y);
     
     std::pair<int, double> chooseLeavingVariable(Eigen::VectorXd &d, int ent_var, int signal);
 
     inline double getSolutionValue();
 
     void printSolution();
+
+    void PhaseOne();
 
   private:
 

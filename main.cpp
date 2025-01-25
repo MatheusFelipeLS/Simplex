@@ -138,7 +138,6 @@ int main(int argc, char** argv) {
 
 
   Data *data = new Data(m, n, c, A, b, l, u);
-  // Data *data = new Data();
   getchar();
 
   Simplex s = Simplex(data);

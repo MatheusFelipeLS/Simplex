@@ -15,7 +15,8 @@ using Eigen::MatrixXd;
 class GS {
   public:
     GS();
-    GS(Eigen::SparseMatrix<double> &B_param, int n);
+    GS(int n);
+    GS(Eigen::SparseMatrix<double> &B_param, Eigen::VectorXd &B_, int n);
     ~GS();
 
     void LUDecomposition(int n);

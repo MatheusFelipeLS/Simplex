@@ -14,13 +14,14 @@ Simplex::Simplex() {
 Simplex::Simplex(Data *d) {  
   
   this->data = d;  
+  this->value = 0;
 
   B = Eigen::VectorXd( data->qtRows() );
-  N = Eigen::VectorXd( data->qtCols() - data->qtRows() );
-
   for(int i = 0; i < data->qtRows(); i++) B[i] = i + data->qtCols() - data->qtRows();
   
+  N = Eigen::VectorXd( data->qtCols() - data->qtRows() );
   for(int i = 0; i < data->qtCols() - data->qtRows(); i++) N[i] = i;
+
 
   std::cout << "B" << std::endl;
   for(int i = 0; i < data->qtRows(); i++) std::cout << B[i] << " ";
@@ -31,6 +32,8 @@ Simplex::Simplex(Data *d) {
   std::cout << std::endl;
 
   getchar();
+
+  gs = new GS(data->qtRows());
   
 }
 
@@ -40,7 +43,10 @@ Simplex::~Simplex() {
 }
 
 
-std::pair<int, int> Simplex::findEnteringVariable(Eigen::VectorXd &y) {
+void Simplex::PhaseOne() { /* aaaaaaaaaaaaa */}
+
+
+std::pair<int, int> Simplex::chooseEnteringVariable(Eigen::VectorXd &y) {
   
   double biggest_reduced_cost = 0;
   int idx_biggest = -1;
@@ -120,12 +126,6 @@ std::pair<int, double> Simplex::chooseLeavingVariable(Eigen::VectorXd &d, int en
 
 void Simplex::solve() {
 
-  Eigen::MatrixXd B_aux = Eigen::MatrixXd::Identity(data->qtRows(), data->qtRows());
-
-  Eigen::SparseMatrix<double> B_param = B_aux.sparseView(); 
-
-  gs = new GS( B_param, data->qtRows() );
-
   Eigen::VectorXd y(data->qtRows());
   Eigen::VectorXd d(data->qtRows());
   Eigen::VectorXd aux;
@@ -144,7 +144,7 @@ void Simplex::solve() {
 
     }
 
-    auto [idx_entering_variable, signal] = findEnteringVariable(y);
+    auto [idx_entering_variable, signal] = chooseEnteringVariable(y);
 
     if(idx_entering_variable == -1) {
 
@@ -169,7 +169,7 @@ void Simplex::solve() {
 
     data->updateX(t, N[idx_entering_variable], d, B, signal);  
   
-    if(idx_leaving_variable > 0) {
+    if(idx_leaving_variable >= 0) {
 
       newEtaCol = true;
 

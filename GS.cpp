@@ -3,9 +3,26 @@
 GS::GS() { /* ctor */ }
 
 
-GS::GS(Eigen::SparseMatrix<double> &B_param, int n) {
+GS::GS(int n) {
+  this->B = Eigen::MatrixXd::Identity(n, n).sparseView() * (-1);
 
-  this->B = B_param;
+  LUDecomposition(n);
+
+  std::cout << "GS matrix:\n" << B.toDense() << std::endl;
+  getchar();
+}
+
+
+GS::GS(Eigen::SparseMatrix<double> &B_param, Eigen::VectorXd &B_, int n) {
+
+  this->B = Eigen::MatrixXd(n, n).sparseView();
+
+  for(int i = 0; i < n; i++) {
+    this->B.col(i) = B_param.col( B_[i] );
+  }
+
+  std::cout << "GS matrix:\n" << B.toDense() << std::endl;
+
   LUDecomposition(n);
 
 }
