@@ -1,88 +1,43 @@
 #include "Data.h"
 
-Data::Data() { 
-  /* ctor */
-  std::vector<std::vector<double>> A = {
-		{3,1,5,6,9,4,3,4,7,6,4,5},
-		{1,0,9,5,8,1,2,7,8,7,9,1}
-  };
-
-  std::vector<double> b = {72,62};
-  std::vector<double> c = {2, 1, -2, -2, 3, 2, 3,-4,0,-2,-3,3};
-	std::vector<double> l = {-5,-std::numeric_limits<double>::infinity(),-4,-2,2,0,0,3,-std::numeric_limits<double>::infinity(),-std::numeric_limits<double>::infinity(),-std::numeric_limits<double>::infinity(),-std::numeric_limits<double>::infinity()};
-	std::vector<double> u = {std::numeric_limits<double>::infinity(),3,-2,3,5,1,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),0,5,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity()};
-  std::vector<double> x = {1, 0, -2, 3,2,0, 0, 3, 0, 5, -1, 1};
-
-  this->m = 2;
-  this->n = 12;
-
-  std::cout << "1\n";
-  getchar();  
-
-  Eigen::MatrixXd sla = Eigen::MatrixXd(m,n);
-  for(int i = 0; i < m; i++) {
-    for(int j = 0; j < n; j++) {
-      sla(i, j) = A[i][j];
-    }
-  }
-
-  std::cout << "2\n";
-  getchar();  
-
-  this->A = sla.sparseView();
-
-  std::cout << "3\n";
-  getchar();  
-
-  this->b = Eigen::VectorXd(m);
-  for(int i = 0; i < m; i++) {
-    this->b[i] = b[i];
-  }
-
-  std::cout << "4\n";
-  getchar();  
-
-  this->c = Eigen::VectorXd(n);
-  for(int i = 0; i < n; i++) {
-    this->c[i] = c[i];
-  }
-
-  std::cout << "5\n";
-  getchar();  
-
-  this->l = Eigen::VectorXd(n);
-  for(int i = 0; i < n; i++) {
-    this->l[i] = l[i];
-  }
-
-  std::cout << "6\n";
-  getchar();  
-
-  this->u = Eigen::VectorXd(n);
-  for(int i = 0; i < n; i++) {
-    this->u[i] = u[i];
-  }
-
-  std::cout << "7\n";
-  getchar();  
+Data::Data() { /* ctor */ }
 
 
-}
-
-
-Data::Data(int m, int n, Eigen::VectorXd &c, Eigen::SparseMatrix<double> &A, Eigen::VectorXd &b, Eigen::VectorXd &l, Eigen::VectorXd &u) {
+Data::Data(int m, int n, Eigen::VectorXd &c, Eigen::MatrixXd &A_dense, Eigen::VectorXd &b, Eigen::VectorXd &l, Eigen::VectorXd &u) {
 
   this->m = m;
   this->n = n;
   this->c = c;
-  this->A = A;
+  this->c_aux = c;
   this->b = b;
   this->l = l;
   this->u = u;
 
-  // this->x = Eigen::VectorXd(n);
-  // for(int i = 0; i < n; i++) x[i] = 0;
+  this->l.conservativeResize(n + m);
+  this->u.conservativeResize(n + m);
+  this->c.conservativeResize(n + m);
 
+  A_dense.conservativeResize(m, m+n);
+  for(int i = 0; i < m; i++) A_dense(i, n+i) = 1;
+
+  this->A = A_dense.sparseView();
+
+}
+
+
+void Data::changeC(bool phase) {
+
+  if(phase) {
+
+    for(int i = 0; i < n-m; i++) c[i] = 0;
+
+  } else {
+
+    for(int i = 0; i < n-m; i++) c[i] = c_aux[i];
+    for(int i = n; i < n+m; i++) c[i] = 0;
+
+  }
+  
 }
 
 
@@ -95,9 +50,6 @@ int Data::qtCols() { return n; }
 double Data::getC(int idx) { return c[idx]; }
 
 
-// double Data::getX(int idx) { return x[idx]; }
-
-
 double Data::getUB(int idx) { return u[idx]; }
 
 
@@ -107,16 +59,23 @@ double Data::getLB(int idx) { return l[idx]; }
 Eigen::VectorXd Data::getCol(int idx) { return A.col(idx); }
 
 
+double Data::multiplyByRow(Eigen::VectorXd &x, int idx) {
+
+  double value = 0;
+  for(int i = 0; i < n-m; i++) {
+    std::cout << "A.coeffRef(idx, i): " << A.coeffRef(idx, i) << "; x[i]: " << x[i] << std::endl;
+    value -= (A.coeffRef(idx, i) * x[i]);
+  }
+  for(int i = n-m; i < n; i++) {
+    std::cout << "A.coeffRef(idx, i): " << A.coeffRef(idx, i) << "; x[i]: " << x[i] << std::endl;
+    value -= (A.coeffRef(idx, i) * x[i]);
+  }
+  std::cout << "value: " << value << std::endl;
+  return value;
+
+}
+
 Eigen::SparseMatrix<double> Data::getA() { return A; }
-
-
-// void Data::updateX(double t, int idx_ev, Eigen::VectorXd &d, Eigen::VectorXd &B, int signal) {
-    
-//   x[ idx_ev ] += (t * signal);
-  
-//   for(int i = 0; i < m; i++) x[ B[i] ] -= ( (t * d[i]) * signal );
-
-// }
 
 
 double Data::getReducedCost(int idx, Eigen::VectorXd &y) { 
@@ -125,14 +84,21 @@ double Data::getReducedCost(int idx, Eigen::VectorXd &y) {
 }
 
 
-// ?????????????????????
-// double Data::calculateFO() {
+void Data::setLB(int idx, double value) {
+  l[idx] = value;
+}
 
-//   double value = 0;
-//   for(int i = 0; i < n-m; i++) {
-//     value += (x[i] * c[i]);
-//   }
 
-//   return value;
+void Data::setUB(int idx, double value) {
+  u[idx] = value;
+}
 
-// }
+
+void Data::setC(int idx, double value) {
+  c[idx] = value;
+}
+
+
+void Data::print() {
+  std::cout << "l: " << l.transpose() << "\nu: " << u.transpose() << "\nc: " << c.transpose() << "\n";
+}

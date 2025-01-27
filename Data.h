@@ -17,7 +17,7 @@ class Data {
       int m, 
       int n,  
       Eigen::VectorXd &c,
-      Eigen::SparseMatrix<double> &A,
+      Eigen::MatrixXd &A_dense,
       Eigen::VectorXd &b,
       Eigen::VectorXd &l,
       Eigen::VectorXd &u
@@ -32,12 +32,17 @@ class Data {
     double getUB(int idx);
     double getLB(int idx);
     Eigen::VectorXd getCol(int idx);
-
-    // void updateX(double t, int idx_ev, Eigen::VectorXd &d, Eigen::VectorXd &B, int signal);
+    double multiplyByRow(Eigen::VectorXd &x, int idx);
     
     Eigen::SparseMatrix<double> getA();
 
-    // double calculateFO();
+    void setLB(int idx, double value);
+    void setUB(int idx, double value);
+    void setC(int idx, double value);
+
+    void print();
+
+    void changeC(bool phase);
 
   private:
 
@@ -45,6 +50,7 @@ class Data {
     int n;
 
     Eigen::VectorXd c;
+    Eigen::VectorXd c_aux;
 
     Eigen::SparseMatrix<double> A;
 

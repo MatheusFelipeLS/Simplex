@@ -42,6 +42,8 @@ class Simplex {
 
     void printSolution();
 
+    int FirstPhase();
+
   private:
 
     double value; 

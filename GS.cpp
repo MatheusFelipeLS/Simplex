@@ -4,7 +4,7 @@ GS::GS() { /* ctor */ }
 
 
 GS::GS(int n) {
-  this->B = Eigen::MatrixXd::Identity(n, n).sparseView() * (-1);
+  this->B = Eigen::MatrixXd::Identity(n, n).sparseView();
 
   LUDecomposition(n);
 
@@ -45,7 +45,7 @@ void GS::reinversion() {
 
   for(int i = 0; i < (int) this->etas_matrix.size(); ++i) {
     
-    B_dense.row( this->etas_matrix[i].first ) = this->etas_matrix[i].second.transpose() * B_dense;
+    B_dense.col( this->etas_matrix[i].first ) = B_dense * this->etas_matrix[i].second;
   
   }
 
@@ -69,6 +69,7 @@ void GS::addEtaColumn(int eta_idx, Eigen::VectorXd &eta_column) {
 
 }
 
+
 void GS::LUDecomposition(int n) {
 
   this->null = (double *) NULL ;
@@ -78,6 +79,7 @@ void GS::LUDecomposition(int n) {
   (void) umfpack_di_numeric (B.outerIndexPtr(), B.innerIndexPtr(), B.valuePtr(), Symbolic, &Numeric, null, null);
 
 }
+
 
 // solving yB = c
     // algorithm:
@@ -90,8 +92,7 @@ void GS::LUDecomposition(int n) {
     // ..
     // Repeat until v_k * B = v_k * LU = v_k-1
 
-// Eigen::VectorXd GS::BTRAN(Eigen::VectorXd &y, Eigen::VectorXd &c_b) {
-Eigen::VectorXd GS::BTRAN(Eigen::VectorXd &y) {
+void GS::BTRAN(Eigen::VectorXd &y) {
 
   // std::cout << "btran\n";
   // std::cout << "y\n" << y << "\nc_b\n" << c_b << "\n";
@@ -112,15 +113,12 @@ Eigen::VectorXd GS::BTRAN(Eigen::VectorXd &y) {
 
   Eigen::VectorXd c_b(y.size());
   for(int i = 0; i < y.size(); i++) c_b[i] = y[i];
-  std::cout << "y: " << y.transpose() << "\n";
   // resolver v * LU = y, pq tem casos que B != I (equivalente a executar os passos 3, 4, 5 e 6 da BTRAN do livro)
   // /*
 
   //Aat usa a transposta de B, e B^{T} * y = y^{T} * B^{T} (acho q n precisa especificar q é a transposta de y)
   (void) umfpack_di_solve(UMFPACK_Aat, B.outerIndexPtr(), B.innerIndexPtr(), B.valuePtr(), y.data(), c_b.data(), Numeric, null, null);
   // */
-
-  return y;
 
 }
 
@@ -137,7 +135,7 @@ Eigen::VectorXd GS::BTRAN(Eigen::VectorXd &y) {
 // Now E_2 * ... * E_k * d = v_2
 // repeat until Ek * d = v_k
 
-Eigen::VectorXd GS::FTRAN(Eigen::VectorXd &d, Eigen::VectorXd &a) {
+void GS::FTRAN(Eigen::VectorXd &d, Eigen::VectorXd &a) {
 
   // resolver B_0 * d = a (equivalente a executar os passos 1, 2, 3 e 4 da FTRAN do livro)
   // /*  
@@ -157,7 +155,5 @@ Eigen::VectorXd GS::FTRAN(Eigen::VectorXd &d, Eigen::VectorXd &a) {
     }
 
   }
-
-  return d;
 
 }

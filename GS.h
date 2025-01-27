@@ -8,7 +8,7 @@
 #include "Eigen/Sparse"
 #include "Eigen/src/Core/Matrix.h"
 
-#define MAX_ETA_SIZE 20
+#define MAX_ETA_SIZE 15
 
 using Eigen::MatrixXd;
 
@@ -21,12 +21,9 @@ class GS {
 
     void LUDecomposition(int n);
 
+    void BTRAN(Eigen::VectorXd &y);
     
-
-    // Eigen::VectorXd BTRAN(Eigen::VectorXd &y, Eigen::VectorXd &c_b);
-    Eigen::VectorXd BTRAN(Eigen::VectorXd &y);
-    
-    Eigen::VectorXd FTRAN(Eigen::VectorXd &d, Eigen::VectorXd &a_param);
+    void FTRAN(Eigen::VectorXd &d, Eigen::VectorXd &a_param);
 
     void addEtaColumn(int eta_idx, Eigen::VectorXd &eta_column);
 
