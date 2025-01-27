@@ -20,8 +20,14 @@
 
 int main(int argc, char** argv) {
 
+  if(argc != 4) {
+    std::cout << "Missing parameters. Expected:/\n./solve <instace path> <instance format>\n";
+    exit(0);
+  }
+
   std::string filename = argv[1];
   std::string fo = argv[2];
+  std::string p = argv[3];
   // int pp = atoi(argv[3]);
   // int refactor = atoi(argv[4]);
 
@@ -105,7 +111,7 @@ int main(int argc, char** argv) {
     u = mps.ub;
     A_dense = mps.A;
     b = mps.b;
-    c = mps.c;
+    c = -mps.c;
     m = mps.n_rows_eq + mps.n_rows_inq;
     n = mps.n_cols + mps.n_rows_inq + mps.n_rows_eq;
     std::cout << "mps.n_cols: " << mps.n_cols << "; mps.n_rows_inq: " << mps.n_rows_inq << "; mps.n_rows_eq: " 
@@ -116,31 +122,28 @@ int main(int argc, char** argv) {
   // Matriz A esparsa
   Eigen::SparseMatrix<double> A = A_dense.sparseView();
 
-  std::cerr << "l:\n" << l.transpose() << std::endl;
-  std::cerr << "\nu:\n" << u.transpose() << std::endl;
   std::cerr << "\nA_dense:\n" << A_dense << std::endl;
-  std::cerr << "\nb:\n" << b.transpose() << std::endl;
-  std::cerr << "\nc:\n" << c.transpose() << std::endl;
+  std::cerr << "\nc: " << c.transpose() << std::endl;
+  std::cerr << "\nb: " << b.transpose() << std::endl;
+  std::cerr << "\nl: " << l.transpose() << std::endl;
+  std::cerr << "\nu: " << u.transpose() << std::endl;
   std::cerr << "\nm: " << m << std::endl;
   std::cerr << "\nn: " << n << std::endl;
 
-  std::cerr << "\n3: " << INFTY - 3 << std::endl;
-  std::cerr << "\n4: " << INFTY / 4 << std::endl;
-  std::cerr << "\n5: " << INFTY + 5 << std::endl;
-  std::cerr << "\n6: " << INFTY * 6 << std::endl;
-  std::cerr << "\n7: " << (INFTY == INFTY) << std::endl;
-  std::cerr << "\n8: " << (INFTY <= INFTY) << std::endl;
-  std::cerr << "\n9: " << (INFTY >= INFTY) << std::endl;
-  std::cerr << "\n10: " << (INFTY < INFTY) << std::endl;
-  std::cerr << "\n11: " << (INFTY > INFTY) << std::endl;
-  std::cerr << "\n12: " << ((-1) * (0-(-INFTY))) << std::endl;
-  std::cerr << "\n13: " << (INFTY == (INFTY / 4)) << std::endl;
-
-
   Data *data = new Data(m, n, c, A, b, l, u);
-  getchar();
 
-  Simplex s = Simplex(data);
+  vector<double> inicial;
+  
+  if(p == "1") inicial = {3, 0, 7, 3, 10, 7};
+  else if(p == "2") inicial = {0, 0, 0, 0, 0};
+  else if(p == "3") inicial = {2, 1, 3, 3};
+  else if(p == "4") inicial = {0, 5, 5, 5};
+  else if(p == "5") inicial = {3.3333333334, 3.6666666667, 7, 3};
+
+  Eigen::VectorXd x(n);
+  for(int i = 0; i < n; i++) x[i] = inicial[i];
+
+  Simplex s = Simplex(data, x);
 
   s.solve();
 

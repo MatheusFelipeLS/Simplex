@@ -27,6 +27,7 @@ class Simplex {
   
     Simplex();
     Simplex(Data *d);
+    Simplex(Data *d, Eigen::VectorXd &x);
     ~Simplex();
 
     void solve();
@@ -37,9 +38,9 @@ class Simplex {
 
     inline double getSolutionValue();
 
-    void printSolution();
+    void updateX(double t, int idx_ev, Eigen::VectorXd &d, int signal);
 
-    void PhaseOne();
+    void printSolution();
 
   private:
 
@@ -50,6 +51,7 @@ class Simplex {
 
     GS *gs;
 
+    Eigen::VectorXd x;
     Eigen::VectorXd B;
     Eigen::VectorXd N; 
 

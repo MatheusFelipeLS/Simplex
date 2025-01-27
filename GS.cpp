@@ -90,7 +90,8 @@ void GS::LUDecomposition(int n) {
     // ..
     // Repeat until v_k * B = v_k * LU = v_k-1
 
-Eigen::VectorXd GS::BTRAN(Eigen::VectorXd &y, Eigen::VectorXd &c_b) {
+// Eigen::VectorXd GS::BTRAN(Eigen::VectorXd &y, Eigen::VectorXd &c_b) {
+Eigen::VectorXd GS::BTRAN(Eigen::VectorXd &y) {
 
   // std::cout << "btran\n";
   // std::cout << "y\n" << y << "\nc_b\n" << c_b << "\n";
@@ -109,16 +110,15 @@ Eigen::VectorXd GS::BTRAN(Eigen::VectorXd &y, Eigen::VectorXd &c_b) {
 
   }
 
-  // std::cout << "y\n" << y.transpose() << "\nc_b\n" << c_b.transpose() << "\n";
+  Eigen::VectorXd c_b(y.size());
+  for(int i = 0; i < y.size(); i++) c_b[i] = y[i];
+  std::cout << "y: " << y.transpose() << "\n";
   // resolver v * LU = y, pq tem casos que B != I (equivalente a executar os passos 3, 4, 5 e 6 da BTRAN do livro)
   // /*
 
   //Aat usa a transposta de B, e B^{T} * y = y^{T} * B^{T} (acho q n precisa especificar q é a transposta de y)
   (void) umfpack_di_solve(UMFPACK_Aat, B.outerIndexPtr(), B.innerIndexPtr(), B.valuePtr(), y.data(), c_b.data(), Numeric, null, null);
   // */
-
-  // std::cout << "y\n" << y.transpose() << "\nc_b\n" << c_b.transpose() << "\n";
-  getchar();
 
   return y;
 

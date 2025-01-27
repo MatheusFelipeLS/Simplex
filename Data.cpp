@@ -66,13 +66,6 @@ Data::Data() {
   std::cout << "7\n";
   getchar();  
 
-  this->x = Eigen::VectorXd(n);
-  for(int i = 0; i < n; i++) {
-    this->x[i] = x[i];
-  }
-
-  std::cout << "8\n";
-  getchar();  
 
 }
 
@@ -87,9 +80,9 @@ Data::Data(int m, int n, Eigen::VectorXd &c, Eigen::SparseMatrix<double> &A, Eig
   this->l = l;
   this->u = u;
 
-  this->x = Eigen::VectorXd(n);
-  for(int i = 0; i < n-m; i++) x[i] = 0;
-  for(int i = 0; i < m; i++) x[i+n-m] = b[i];
+  // this->x = Eigen::VectorXd(n);
+  // for(int i = 0; i < n; i++) x[i] = 0;
+
 }
 
 
@@ -102,7 +95,7 @@ int Data::qtCols() { return n; }
 double Data::getC(int idx) { return c[idx]; }
 
 
-double Data::getX(int idx) { return x[idx]; }
+// double Data::getX(int idx) { return x[idx]; }
 
 
 double Data::getUB(int idx) { return u[idx]; }
@@ -117,13 +110,13 @@ Eigen::VectorXd Data::getCol(int idx) { return A.col(idx); }
 Eigen::SparseMatrix<double> Data::getA() { return A; }
 
 
-void Data::updateX(double t, int idx_ev, Eigen::VectorXd &d, Eigen::VectorXd &B, int signal) {
+// void Data::updateX(double t, int idx_ev, Eigen::VectorXd &d, Eigen::VectorXd &B, int signal) {
     
-  x[ idx_ev ] += (t * signal);
+//   x[ idx_ev ] += (t * signal);
   
-  for(int i = 0; i < m; i++) x[ B[i] ] -= ( (t * d[i]) * signal );
+//   for(int i = 0; i < m; i++) x[ B[i] ] -= ( (t * d[i]) * signal );
 
-}
+// }
 
 
 double Data::getReducedCost(int idx, Eigen::VectorXd &y) { 
@@ -133,13 +126,13 @@ double Data::getReducedCost(int idx, Eigen::VectorXd &y) {
 
 
 // ?????????????????????
-double Data::calculateFO() {
+// double Data::calculateFO() {
 
-  double value = 0;
-  for(int i = 0; i < n-m; i++) {
-    value += (x[i] * c[i]);
-  }
+//   double value = 0;
+//   for(int i = 0; i < n-m; i++) {
+//     value += (x[i] * c[i]);
+//   }
 
-  return value;
+//   return value;
 
-}
+// }

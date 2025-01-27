@@ -33,11 +33,11 @@ class Data {
     double getLB(int idx);
     Eigen::VectorXd getCol(int idx);
 
-    void updateX(double t, int idx_ev, Eigen::VectorXd &d, Eigen::VectorXd &B, int signal);
+    // void updateX(double t, int idx_ev, Eigen::VectorXd &d, Eigen::VectorXd &B, int signal);
     
     Eigen::SparseMatrix<double> getA();
 
-    double calculateFO();
+    // double calculateFO();
 
   private:
 
@@ -48,20 +48,12 @@ class Data {
 
     Eigen::SparseMatrix<double> A;
 
-    Eigen::VectorXd x;
+    // Eigen::VectorXd x;
 
     Eigen::VectorXd b;
 
     Eigen::VectorXd l;
     Eigen::VectorXd u;
-
-
-    //////////////////////// será inútil
-    // Eigen::VectorXd xn;
-    // Eigen::VectorXd xb;
-
-    // Eigen::VectorXd cb;
-    // Eigen::VectorXd cn;
 
 };
 
