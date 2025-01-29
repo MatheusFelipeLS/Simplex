@@ -30,7 +30,7 @@ class GS {
     void reinversion();
 
   private:
-    std::vector<std::pair<int, Eigen::VectorXd>> etas_matrix;
+    std::vector<std::pair<int, Eigen::VectorXd>> eta;
 
     Eigen::SparseMatrix<double> B;
 

@@ -309,7 +309,7 @@ void Simplex::Maximize() {
       if(N[ idx_entering_variable ] >= data->qtCols()) {
         std::swap(N[ idx_entering_variable ], N[N.size()-1]);
         N.conservativeResize(N.size()-1);
-        if(idx_entering_variable == N.size()) idx_entering_variable--;
+        if(N.size() == data->qtCols() - data->qtRows()) data->resize();
       } 
 
       // sortLists(idx_entering_variable, idx_leaving_variable); 
@@ -367,9 +367,9 @@ void Simplex::solve() {
 
   double auxObjValue = 0;
   for(int i = 0; i < data->qtRows(); i++) {
-
     if(std::abs(x[ i+n ]) < E2) continue;
 
+    std::cout << "x[" << i+n << "]: " << x[i+n] << "; ";
     auxObjValue += ( x[ i+n ] * data->getC( i+n ) );
 
   } 

@@ -39,19 +39,19 @@ GS::~GS() {
 
 void GS::reinversion() {
   
-  int n = this->etas_matrix[0].second.size();
+  int n = this->eta[0].second.size();
 
   Eigen::MatrixXd B_dense = this->B.toDense();
 
-  for(int i = 0; i < (int) this->etas_matrix.size(); ++i) {
+  for(int i = 0; i < (int) this->eta.size(); ++i) {
     
-    B_dense.col( this->etas_matrix[i].first ) = B_dense * this->etas_matrix[i].second;
+    B_dense.col( this->eta[i].first ) = B_dense * this->eta[i].second;
   
   }
 
   this->B = B_dense.sparseView();
 
-  this->etas_matrix.clear();
+  this->eta.clear();
 
   umfpack_di_free_symbolic (&this->Symbolic);
   umfpack_di_free_numeric (&this->Numeric);
@@ -63,9 +63,9 @@ void GS::reinversion() {
 
 void GS::addEtaColumn(int eta_idx, Eigen::VectorXd &eta_column) {
 
-  this->etas_matrix.push_back(std::make_pair(eta_idx, eta_column));
+  this->eta.push_back(std::make_pair(eta_idx, eta_column));
 
-  if(this->etas_matrix.size() == MAX_ETA_SIZE) reinversion();
+  if(this->eta.size() == MAX_ETA_SIZE) reinversion();
 
 }
 
@@ -97,17 +97,17 @@ void GS::BTRAN(Eigen::VectorXd &y) {
   // std::cout << "btran\n";
   // std::cout << "y\n" << y << "\nc_b\n" << c_b << "\n";
 
-  for(int i = this->etas_matrix.size()-1; i >= 0; i--) {
+  for(int i = this->eta.size()-1; i >= 0; i--) {
 
-    for(int j = 0; j < this->etas_matrix[i].first; j++) {
-      y[this->etas_matrix[i].first] -= ( y[j] * this->etas_matrix[i].second[ j ] );
+    for(int j = 0; j < this->eta[i].first; j++) {
+      y[this->eta[i].first] -= ( y[j] * this->eta[i].second[ j ] );
     }
 
-    for(int j = this->etas_matrix[i].first + 1; j < y.size(); j++) {
-      y[this->etas_matrix[i].first] -= ( y[j] * this->etas_matrix[i].second[ j ] );
+    for(int j = this->eta[i].first + 1; j < y.size(); j++) {
+      y[this->eta[i].first] -= ( y[j] * this->eta[i].second[ j ] );
     }
     
-    y[this->etas_matrix[i].first] /= this->etas_matrix[i].second[ this->etas_matrix[i].first ];
+    y[this->eta[i].first] /= this->eta[i].second[ this->eta[i].first ];
 
   }
 
@@ -142,16 +142,16 @@ void GS::FTRAN(Eigen::VectorXd &d, Eigen::VectorXd &a) {
   (void) umfpack_di_solve(UMFPACK_A, B.outerIndexPtr(), B.innerIndexPtr(), B.valuePtr(), d.data(), a.data(), Numeric, null, null);
   // */
 
-  for(long unsigned i = 0; i < this->etas_matrix.size(); i++) {
+  for(long unsigned i = 0; i < eta.size(); i++) {
 
-    d[ this->etas_matrix[i].first ] = (d[ this->etas_matrix[i].first ] / this->etas_matrix[i].second[ this->etas_matrix[i].first ]);
+    d[ eta[i].first ] = (d[ eta[i].first ] / eta[i].second[ eta[i].first ]);
 
-    for(int j = 0; j < this->etas_matrix[i].first; j++) {
-      d[ j ] -= (this->etas_matrix[i].second[ j ] * d[ this->etas_matrix[i].first ]);
+    for(int j = 0; j < eta[i].first; j++) {
+      d[ j ] -= (eta[i].second[ j ] * d[ eta[i].first ]);
     }
 
-    for(int j = this->etas_matrix[i].first + 1; j < d.size(); j++) {
-      d[ j ] -= (this->etas_matrix[i].second[ j ] * d[ this->etas_matrix[i].first ]);
+    for(int j = eta[i].first + 1; j < d.size(); j++) {
+      d[ j ] -= (eta[i].second[ j ] * d[ eta[i].first ]);
     }
 
   }

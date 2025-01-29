@@ -100,5 +100,14 @@ void Data::setC(int idx, double value) {
 
 
 void Data::print() {
-  // std::cout << "l: " << l.transpose() << "\nu: " << u.transpose() << "\nc: " << c.transpose() << "\n";
+  std::cout << "l: " << l.transpose() << "\nu: " << u.transpose() << "\nc: " << c.transpose() << "\n";
+}
+
+
+void Data::resize() {
+
+  l.conservativeResize(n);
+  u.conservativeResize(n);
+  A.conservativeResize(m, n);
+
 }

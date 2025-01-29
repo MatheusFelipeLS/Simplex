@@ -44,6 +44,8 @@ class Data {
 
     void changeC(bool phase);
 
+    void resize();
+
   private:
 
     int m;
