@@ -8,7 +8,7 @@
 #include "Eigen/Sparse"
 #include "Eigen/src/Core/Matrix.h"
 
-#define MAX_ETA_SIZE 15
+#define MAX_ETA_SIZE 20
 
 using Eigen::MatrixXd;
 

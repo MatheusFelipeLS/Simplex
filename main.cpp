@@ -7,6 +7,7 @@
 #include <vector>
 #include <algorithm>
 #include <map>
+#include <filesystem>
 
 #include "Eigen/Dense"
 #include "Eigen/Sparse"
@@ -20,16 +21,19 @@
 
 int main(int argc, char** argv) {
 
-  if(argc != 4) {
-    std::cout << "Missing parameters. Expected:/\n./solve <instace path> <instance format>\n";
+  if(argc != 2) {
+    std::cout << "Missing parameters. Expected:/\n./solve <instace path>\n";
     exit(0);
   }
 
   std::string filename = argv[1];
-  std::string fo = argv[2];
-  std::string p = argv[3];
+  // std::string fo = argv[2];
   // int pp = atoi(argv[3]);
   // int refactor = atoi(argv[4]);
+
+
+  std::filesystem::path file(filename);
+  std::string extension = file.extension().string();
 
   // variaveis para armazenar as informações da instância
   Eigen::MatrixXd A_dense;
@@ -43,7 +47,7 @@ int main(int argc, char** argv) {
   // leitor de instâncias mps
   mpsReader mps;
 
-  if (fo != "mps") {
+  if (extension != ".mps") {
 
     ifstream readFile(filename);
     readFile >> m >> n;
@@ -122,28 +126,22 @@ int main(int argc, char** argv) {
   // Matriz A esparsa
   Eigen::SparseMatrix<double> A = A_dense.sparseView();
 
-  std::cerr << "\nA_dense:\n" << A_dense << std::endl;
-  std::cerr << "\nc: " << c.transpose() << std::endl;
-  std::cerr << "\nb: " << b.transpose() << std::endl;
-  std::cerr << "\nl: " << l.transpose() << std::endl;
-  std::cerr << "\nu: " << u.transpose() << std::endl;
+  // std::cerr << "\nA_dense:\n" << A_dense << std::endl;
+  // std::cerr << "\nc: " << c.transpose() << std::endl;
+  // std::cerr << "\nb: " << b.transpose() << std::endl;
+  // std::cerr << "\nl: " << l.transpose() << std::endl;
+  // std::cerr << "\nu: " << u.transpose() << std::endl;
+
+  // std::cerr << "\n0 == -0: " << (0 == (-0)) << std::endl;
+  // std::cerr << "\n0 > -0: " << (0 > (-0)) << std::endl;
+  // std::cerr << "\n0 >= -0: " << (0 >= (-0)) << std::endl;
+  // getchar();
+
   std::cerr << "\nm: " << m << std::endl;
   std::cerr << "\nn: " << n << std::endl;
 
   Data *data = new Data(m, n, c, A_dense, b, l, u);
 
-  // vector<double> inicial;
-  
-  // if(p == "1") inicial = {3, 0, 7, 3, 10, 7};
-  // else if(p == "2") inicial = {0, 0, 0, 0, 0};
-  // else if(p == "3") inicial = {2, 1, 3, 3};
-  // else if(p == "4") inicial = {0, 5, 5, 5};
-  // else if(p == "5") inicial = {3.3333333334, 3.6666666667, 7, 3};
-
-  // Eigen::VectorXd x(n);
-  // for(int i = 0; i < n; i++) x[i] = inicial[i];
-
-  // Simplex s = Simplex(data, x);
   Simplex s = Simplex(data);
 
   s.solve();

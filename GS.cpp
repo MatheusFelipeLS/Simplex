@@ -8,8 +8,8 @@ GS::GS(int n) {
 
   LUDecomposition(n);
 
-  std::cout << "GS matrix:\n" << B.toDense() << std::endl;
-  getchar();
+  // std::cout << "GS matrix:\n" << B.toDense() << std::endl;
+  // getchar();
 }
 
 

@@ -63,14 +63,14 @@ double Data::multiplyByRow(Eigen::VectorXd &x, int idx) {
 
   double value = 0;
   for(int i = 0; i < n-m; i++) {
-    std::cout << "A.coeffRef(idx, i): " << A.coeffRef(idx, i) << "; x[i]: " << x[i] << std::endl;
+    // std::cout << "A.coeffRef(idx, i): " << A.coeffRef(idx, i) << "; x[i]: " << x[i] << std::endl;
     value -= (A.coeffRef(idx, i) * x[i]);
   }
   for(int i = n-m; i < n; i++) {
-    std::cout << "A.coeffRef(idx, i): " << A.coeffRef(idx, i) << "; x[i]: " << x[i] << std::endl;
+    // std::cout << "A.coeffRef(idx, i): " << A.coeffRef(idx, i) << "; x[i]: " << x[i] << std::endl;
     value -= (A.coeffRef(idx, i) * x[i]);
   }
-  std::cout << "value: " << value << std::endl;
+  // std::cout << "value: " << value << std::endl;
   return value;
 
 }
@@ -79,7 +79,7 @@ Eigen::SparseMatrix<double> Data::getA() { return A; }
 
 
 double Data::getReducedCost(int idx, Eigen::VectorXd &y) { 
-  std::cout << "c[idx]: " << c[idx] << "; y.t: " << y.transpose() << "; A.c: " << A.col(idx).transpose();
+  // std::cout << "c[idx]: " << c[idx] << "; y.t: " << y.transpose() << "; A.c: " << A.col(idx).transpose();
   return c[idx] - (y.transpose() * A.col(idx)); 
 }
 
@@ -100,5 +100,5 @@ void Data::setC(int idx, double value) {
 
 
 void Data::print() {
-  std::cout << "l: " << l.transpose() << "\nu: " << u.transpose() << "\nc: " << c.transpose() << "\n";
+  // std::cout << "l: " << l.transpose() << "\nu: " << u.transpose() << "\nc: " << c.transpose() << "\n";
 }
