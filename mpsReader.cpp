@@ -1,5 +1,4 @@
 #include "mpsReader.h"
-// #include "Scaling.h"
 
 mpsReader::mpsReader(string fileName)
 {
@@ -257,7 +256,7 @@ void mpsReader::_extractData(ifstream &readFile)
     b = VectorXd::Zero(n_rows_inq + n_rows_eq);
 
 
-    // // quando eu implementar o scaling isso vai ser util
+    // // quando eu implementar o scaling isso vai ser util (to usando o de raquel pra testar)
     // Scaling sc;
     // if(preprocess) sc.geometric_iterate(Araw, braw, c, lb, ub); 
 

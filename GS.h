@@ -16,7 +16,7 @@ class GS {
   public:
     GS();
     GS(int n);
-    GS(Eigen::SparseMatrix<double> &B_param, Eigen::VectorXd &B_, int n);
+
     ~GS();
 
     void LUDecomposition(int n);
@@ -28,6 +28,8 @@ class GS {
     void addEtaColumn(int eta_idx, Eigen::VectorXd &eta_column);
 
     void reinversion();
+
+    void solveInit(Eigen::VectorXd &x_b, Eigen::VectorXd &b_An_xn);
 
   private:
     std::vector<std::pair<int, Eigen::VectorXd>> eta;

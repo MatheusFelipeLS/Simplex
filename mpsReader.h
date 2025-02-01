@@ -67,6 +67,8 @@
 #include "Eigen/Sparse"
 #include "Eigen/src/Core/Matrix.h"
 
+// #include "Scaling.h"
+
 using namespace std;
 using Eigen::MatrixXd;
 using Eigen::VectorXd;

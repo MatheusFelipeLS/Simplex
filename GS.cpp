@@ -4,26 +4,18 @@ GS::GS() { /* ctor */ }
 
 
 GS::GS(int n) {
-  this->B = Eigen::MatrixXd::Identity(n, n).sparseView();
+
+  this->B = Eigen::MatrixXd::Identity(n, n).sparseView() * (-1);
 
   LUDecomposition(n);
 
-  // std::cout << "GS matrix:\n" << B.toDense() << std::endl;
-  // getchar();
 }
 
 
-GS::GS(Eigen::SparseMatrix<double> &B_param, Eigen::VectorXd &B_, int n) {
+void GS::solveInit(Eigen::VectorXd &x_b, Eigen::VectorXd &b_An_xn) {
 
-  this->B = Eigen::MatrixXd(n, n).sparseView();
-
-  for(int i = 0; i < n; i++) {
-    this->B.col(i) = B_param.col( B_[i] );
-  }
-
-  std::cout << "GS matrix:\n" << B.toDense() << std::endl;
-
-  LUDecomposition(n);
+  // solving B * x_b = b - An * x_n
+  (void) umfpack_di_solve(UMFPACK_A, B.outerIndexPtr(), B.innerIndexPtr(), B.valuePtr(), x_b.data(), b_An_xn.data(), Numeric, null, null);
 
 }
 
@@ -33,9 +25,6 @@ GS::~GS() {
   umfpack_di_free_symbolic(&Numeric);
 }
 
-// /*
-
-// rapaz, isso parece tá mt mal feito, tqv como as outras pessoas fizeram depois...
 
 void GS::reinversion() {
   
@@ -58,7 +47,6 @@ void GS::reinversion() {
 
   LUDecomposition(n);
 }
-// */
 
 
 void GS::addEtaColumn(int eta_idx, Eigen::VectorXd &eta_column) {

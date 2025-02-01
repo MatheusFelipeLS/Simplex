@@ -31,8 +31,12 @@ class Data {
     double getX(int idx);
     double getUB(int idx);
     double getLB(int idx);
+    Eigen::VectorXd copyL();
+    Eigen::VectorXd copyU();
+    Eigen::VectorXd copyC();
     Eigen::VectorXd getCol(int idx);
     double multiplyByRow(Eigen::VectorXd &x, int idx);
+    double multiplyByCol(Eigen::VectorXd &x, int idx);
     
     Eigen::SparseMatrix<double> getA();
 
@@ -40,11 +44,11 @@ class Data {
     void setUB(int idx, double value);
     void setC(int idx, double value);
 
+    void restartLUC(Eigen::VectorXd &l, Eigen::VectorXd &u, Eigen::VectorXd &c);
+
     void print();
 
     void changeC(bool phase);
-
-    void resize();
 
   private:
 

@@ -15,9 +15,8 @@
 
 #include "mpsReader.h"
 #include "Simplex.h"
-
-#define pInf numeric_limits<double>::infinity()
-#define nInf -numeric_limits<double>::infinity()
+#include "Data.h"
+#include "Scaling.h"
 
 int main(int argc, char** argv) {
 
@@ -122,9 +121,6 @@ int main(int argc, char** argv) {
     << mps.n_rows_eq << std::endl;
 
   }
-
-  // Matriz A esparsa
-  Eigen::SparseMatrix<double> A = A_dense.sparseView();
 
   // std::cerr << "\nA_dense:\n" << A_dense << std::endl;
   // std::cerr << "\nc: " << c.transpose() << std::endl;
