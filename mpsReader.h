@@ -67,7 +67,7 @@
 #include "Eigen/Sparse"
 #include "Eigen/src/Core/Matrix.h"
 
-// #include "Scaling.h"
+#include "Scaling.h"
 
 using namespace std;
 using Eigen::MatrixXd;
@@ -98,7 +98,7 @@ public:
     vector<string> col_list;
     vector<int> restricoes;
 
-    int preprocess;
+    bool preprocess;
 
 private:
     long col_pos;

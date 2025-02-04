@@ -34,7 +34,6 @@ Simplex::Simplex(Data *d, Eigen::VectorXd &x) {
   this->blands_rule = false;
 
   this->x = x;
-  // std::cout << "x: " << x.transpose() << "\n" << std::endl;
 
   B = std::vector<int>( data->qtRows() );
   for(int i = 0; i < data->qtRows(); i++) B[i] = i + data->qtCols() - data->qtRows();
@@ -60,35 +59,24 @@ std::pair<int, int> Simplex::chooseEnteringVariable(Eigen::VectorXd &y) {
     if(x[ N[i] ] < data->getUB(N[i]) - E1 && reduced_cost > E1 && N[i] < biggest_reduced_cost) {
     // if(x[ N[i] ] < data->getUB(N[i]) - E1 && reduced_cost > E1 && reduced_cost > biggest_reduced_cost) {
 
-      signal = 1;
       // biggest_reduced_cost = reduced_cost;
+      signal = 1;
       biggest_reduced_cost = N[i];
       idx_biggest = i;
-
-      // if(blands_rule) return std::make_pair(idx_biggest, signal);
       
     }
     
     else if(x[ N[i] ] > data->getLB(N[i]) + E1 && reduced_cost < -E1 && N[i] < biggest_reduced_cost) {
     // else if(x[ N[i] ] > data->getLB(N[i]) + E1 && reduced_cost < -E1 && std::abs(reduced_cost) > biggest_reduced_cost) {
 
-      signal = -1;
       // biggest_reduced_cost = std::abs(reduced_cost);
+      signal = -1;
       biggest_reduced_cost = N[i];
       idx_biggest = i;
 
-      // if(blands_rule) return std::make_pair(idx_biggest, signal);
-
     }
 
-    // std::cout << "N[i]: " << N[i] << "; reduced cost[" << N[i] << "]: " << reduced_cost << "; x[N[i]]: " << x[ N[i] ] 
-    // << "; data->getLB(N[i]): " << data->getLB(N[i]) << "; data->getUB(N[i]): " << 
-    // data->getUB(N[i]) << std::endl << std::endl;
-
   }
-
-  // std::cout << "idx: " << idx_biggest << "; signal: " << signal << std::endl;
-  // getchar();
 
   return std::make_pair(idx_biggest, signal);
 
@@ -106,15 +94,10 @@ std::pair<int, double> Simplex::chooseLeavingVariable(Eigen::VectorXd &d, int en
 
   else maxt = (x[ent_var] - data->getLB(ent_var));
 
-  // std::cout << "data->getUB(ent_var): " << data->getUB(ent_var) << "; data->getLB(ent_var): " << data->getLB(ent_var) << "; x[ent_var]: " << x[ent_var] << std::endl;
 
   for(int i = 0; i < (int) B.size(); i++) {
 
     double x_b = x[ B[i] ];
-
-    // std::cout << "\nd[" << i << "]: " << d[i] << "; B[i]: " << B[i] << "; idx_leaving_variable: " << idx_leaving_variable << "; maxt: " << maxt
-    // << "B[" << i << "]: " << B[i] <<  "; data->getLB( B[i] ): " << data->getLB( B[i] ) << "; data->getUB( B[i] ): " << data->getUB( B[i] ) 
-    //  << "; x_b: " << x_b;
 
     if(std::abs(d[i]) <= E2) {
 
@@ -123,7 +106,7 @@ std::pair<int, double> Simplex::chooseLeavingVariable(Eigen::VectorXd &d, int en
     } else if( (signal > 0 && d[i] > 0) || (signal < 0 && d[i] < 0) ) {
 
       t = signal * (x_b - (data->getLB( B[i] )) ) / d[i];
-      if((t >= 0 && t < maxt)) {
+      if((t >= 0 && t < maxt) ) {
         maxt = t;
         idx_leaving_variable = i;
       }
@@ -131,21 +114,14 @@ std::pair<int, double> Simplex::chooseLeavingVariable(Eigen::VectorXd &d, int en
     } else if( (signal > 0 && d[i] < 0) || (signal < 0 && d[i] > 0) ) {
       
       t = signal * (x_b - (data->getUB( B[i] )) ) / d[i];
-      if( (t >= 0 && t < maxt)) {
+      if( (t >= 0 && t < maxt) ) {
         maxt = t;
         idx_leaving_variable = i;
       }
 
     }
 
-    // std::cout << "; t: " << t << "\n";
-
-    // if(maxt < E1) return std::make_pair(idx_leaving_variable, 0.000000);
-
   }
-
-  // std::cout << "idx_leaving_variable: " << idx_leaving_variable << "; maxt: " << maxt << std::endl;
-  // getchar(); 
   
   return std::make_pair(idx_leaving_variable, maxt);
 
@@ -190,20 +166,11 @@ int Simplex::Maximize(int newEtaCol, Eigen::VectorXd &y) {
 
     for(int i = 0; i < data->qtRows(); i++) y[i] = data->getC(B[i]);
 
-    // std::cout << "\ny: " << y.transpose() << "\naux: " << aux.transpose() << "\n";
-    // getchar();
-
     gs->BTRAN(y); // solving yB = c
-
-    // std::cout << "y: " << y.transpose() << "\naux: " << aux.transpose() << "\n";
-    // getchar();
 
   }
 
   auto [idx_entering_variable, signal] = chooseEnteringVariable(y);
-
-  // std::cout << "\nidx_entering_variable: " << idx_entering_variable << "; signal: " << signal << "\n";
-  // getchar();
 
   if(idx_entering_variable == -1) {
 
@@ -214,20 +181,9 @@ int Simplex::Maximize(int newEtaCol, Eigen::VectorXd &y) {
 
   aux = d = data->getCol( N[ idx_entering_variable ] );
 
-  // std::cout << "\nd: " << d.transpose() << "\naux: " << aux.transpose() << "\n";
-  // getchar();
-
   gs->FTRAN(d, aux);  // solving Bd = a
 
-  // std::cout << "d: " << d.transpose() << "\naux: " << aux.transpose() << "\n";
-  // getchar();
-  // std::cout << "vetor d: " << d.transpose() << std::endl;
-  // getchar();
-
   auto [idx_leaving_variable, t] = chooseLeavingVariable(d, N[idx_entering_variable], signal);
-
-  // std::cout << "\nidx_leaving_variable: " << idx_leaving_variable << "; t: " << t << "\n";
-  // getchar();
 
   if(t == INFTY) {
 
@@ -236,9 +192,7 @@ int Simplex::Maximize(int newEtaCol, Eigen::VectorXd &y) {
     this->value = t;
     return 2;
 
-  } 
-  // /*
-  else if(t < E1) {
+  } else if(t < E1) {
 
     degenerated_iteration++;
 
@@ -252,41 +206,33 @@ int Simplex::Maximize(int newEtaCol, Eigen::VectorXd &y) {
     degenerated_iteration = 0;
     
   }
-  // */
-
-  // std::cout << "x: " << x.transpose() << "\n";
-  // getchar();
 
   updateX(t, N[idx_entering_variable], d, signal);  
 
-  // std::cout << "x: " << x.transpose() << "\n";
-  // getchar();
+  double rowSum;
+  for(int i = 0; i < data->qtRows(); i++) {
+
+    rowSum = data->multiplyByRow(x, i) - x[i+data->qtCols()-data->qtRows()];
+
+    if(std::abs(rowSum) > E3) {
+
+      gs->reinversion();
+      break;
+
+    }
+
+  }
+
 
   if(idx_leaving_variable > -0.1) {
     
     gs->addEtaColumn(idx_leaving_variable, d);
-
-    // std::cout << "N: " << N.transpose() << "\n\nB: " << B.transpose() << "\n\n\n";
 
     std::swap(N[ idx_entering_variable ], B[ idx_leaving_variable ]);
 
     return 1;
 
   } else {
-
-    double rowSum;
-    for(int i = 0; i < data->qtRows(); i++) {
-
-      rowSum = data->multiplyByRow(x, i) - x[i+data->qtCols()-data->qtRows()];
-
-      if(std::abs(rowSum) > E3) {
-
-        gs->reinversion();
-        return 0;
-
-      }
-
-    }
 
     return 0;
     
@@ -299,12 +245,9 @@ void Simplex::solve() {
 
   Eigen::VectorXd y(data->qtRows());
 
-  data->changeC(true);
+  data->changeObjFunction(true);
 
   findInitialSolution(); /* this solution won't be always feasible */
-
-  // std::cout << "\n\n\nx: " << x.transpose() << std::endl;
-  // getchar();
 
   Eigen::VectorXd l = data->copyL();
   Eigen::VectorXd u = data->copyU();
@@ -315,7 +258,6 @@ void Simplex::solve() {
   while(computeInfeasibility()) {
 
     newEtaCol = Maximize(newEtaCol, y);
-    // std::cout << "x: " << x.transpose() << std::endl;
 
     if(newEtaCol == 2) {
       status = "Unfeasible";
@@ -328,13 +270,8 @@ void Simplex::solve() {
 
   data->restartLUC(l, u, c);
 
-  // std::cout << "antes changeC" << std::endl;
-  // getchar();
+  data->changeObjFunction(false);
 
-  data->changeC(false);
-
-  // std::cout << "depois changeC" << std::endl;
-  // getchar();
 
   std::cout << "PHASE TWO\nx: " << x.transpose() << std::endl;
 
@@ -359,20 +296,12 @@ void Simplex::findInitialSolution() {
 
   }
 
-  Eigen::VectorXd b_An_xn(m);
+
   for(int i = 0; i < m; i++) {
-    b_An_xn(i) = -data->multiplyByRow(x_n, i);
+    x_b(i) = data->multiplyByRow(x_n, i);
   }
 
-  gs->solveInit(x_b, b_An_xn);
-
   x << x_n, x_b;
-
-
-  // std::cout << "\n\n\n\nb_An_xn:\n" << b_An_xn.transpose() << std::endl;
-  // std::cout << "\n\n\nx:\n" << x.transpose() << std::endl;
-  // getchar();
-  // data->print();
 
 }
 
@@ -404,8 +333,6 @@ bool Simplex::computeInfeasibility() {
   }
 
   std::cout << "infeasibility: " << infeasibility << std::endl;
-  // data->print();
-  // getchar();
 
 
 

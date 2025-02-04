@@ -38,7 +38,6 @@ mpsReader::mpsReader()
 void mpsReader::read(string fileName)
 {
     ifstream readFile(fileName);
-    // preprocess = pre;
 
     if (readFile.is_open())
     {
@@ -256,9 +255,8 @@ void mpsReader::_extractData(ifstream &readFile)
     b = VectorXd::Zero(n_rows_inq + n_rows_eq);
 
 
-    // // quando eu implementar o scaling isso vai ser util (to usando o de raquel pra testar)
-    // Scaling sc;
-    // if(preprocess) sc.geometric_iterate(Araw, braw, c, lb, ub); 
+    Scaling sc;
+    sc.geometric_iterate(Araw, braw, c, lb, ub); 
 
 
     _splitRaw(Araw, braw, c, A, b);

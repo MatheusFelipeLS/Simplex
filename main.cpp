@@ -16,7 +16,7 @@
 #include "mpsReader.h"
 #include "Simplex.h"
 #include "Data.h"
-#include "Scaling.h"
+// #include "Scaling.h"
 
 int main(int argc, char** argv) {
 
@@ -26,10 +26,6 @@ int main(int argc, char** argv) {
   }
 
   std::string filename = argv[1];
-  // std::string fo = argv[2];
-  // int pp = atoi(argv[3]);
-  // int refactor = atoi(argv[4]);
-
 
   std::filesystem::path file(filename);
   std::string extension = file.extension().string();
@@ -81,9 +77,9 @@ int main(int argc, char** argv) {
 
       readFile >> str;
       if (!str.compare("inf"))
-        l(i) = pInf;
+        l(i) = INFTY;
       else if (!str.compare("-inf"))
-        l(i) = nInf;
+        l(i) = -INFTY;
       else
         l(i) = stof(str);
     }
@@ -93,9 +89,9 @@ int main(int argc, char** argv) {
     for (int i = 0; i < n; i++) {
       readFile >> str;
       if (!str.compare("inf"))
-        u(i) = pInf;
+        u(i) = INFTY;
       else if (!str.compare("-inf"))
-        u(i) = nInf;
+        u(i) = -INFTY;
       else
         u(i) = stof(str);
     }
@@ -117,24 +113,8 @@ int main(int argc, char** argv) {
     c = -mps.c;
     m = mps.n_rows_eq + mps.n_rows_inq;
     n = mps.n_cols + mps.n_rows_inq + mps.n_rows_eq;
-    std::cout << "mps.n_cols: " << mps.n_cols << "; mps.n_rows_inq: " << mps.n_rows_inq << "; mps.n_rows_eq: " 
-    << mps.n_rows_eq << std::endl;
 
   }
-
-  // std::cerr << "\nA_dense:\n" << A_dense << std::endl;
-  // std::cerr << "\nc: " << c.transpose() << std::endl;
-  // std::cerr << "\nb: " << b.transpose() << std::endl;
-  // std::cerr << "\nl: " << l.transpose() << std::endl;
-  // std::cerr << "\nu: " << u.transpose() << std::endl;
-
-  // std::cerr << "\n0 == -0: " << (0 == (-0)) << std::endl;
-  // std::cerr << "\n0 > -0: " << (0 > (-0)) << std::endl;
-  // std::cerr << "\n0 >= -0: " << (0 >= (-0)) << std::endl;
-  // getchar();
-
-  std::cerr << "\nm: " << m << std::endl;
-  std::cerr << "\nn: " << n << std::endl;
 
   Data *data = new Data(m, n, c, A_dense, b, l, u);
 

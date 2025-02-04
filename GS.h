@@ -29,8 +29,6 @@ class GS {
 
     void reinversion();
 
-    void solveInit(Eigen::VectorXd &x_b, Eigen::VectorXd &b_An_xn);
-
   private:
     std::vector<std::pair<int, Eigen::VectorXd>> eta;
 

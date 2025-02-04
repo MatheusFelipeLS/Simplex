@@ -12,14 +12,6 @@ GS::GS(int n) {
 }
 
 
-void GS::solveInit(Eigen::VectorXd &x_b, Eigen::VectorXd &b_An_xn) {
-
-  // solving B * x_b = b - An * x_n
-  (void) umfpack_di_solve(UMFPACK_A, B.outerIndexPtr(), B.innerIndexPtr(), B.valuePtr(), x_b.data(), b_An_xn.data(), Numeric, null, null);
-
-}
-
-
 GS::~GS() {
   umfpack_di_free_symbolic(&Symbolic);
   umfpack_di_free_symbolic(&Numeric);
@@ -82,9 +74,6 @@ void GS::LUDecomposition(int n) {
 
 void GS::BTRAN(Eigen::VectorXd &y) {
 
-  // std::cout << "btran\n";
-  // std::cout << "y\n" << y << "\nc_b\n" << c_b << "\n";
-
   for(int i = this->eta.size()-1; i >= 0; i--) {
 
     for(int j = 0; j < this->eta[i].first; j++) {
@@ -101,12 +90,8 @@ void GS::BTRAN(Eigen::VectorXd &y) {
 
   Eigen::VectorXd c_b(y.size());
   for(int i = 0; i < y.size(); i++) c_b[i] = y[i];
-  // resolver v * LU = y, pq tem casos que B != I (equivalente a executar os passos 3, 4, 5 e 6 da BTRAN do livro)
-  // /*
 
-  //Aat usa a transposta de B, e B^{T} * y = y^{T} * B^{T} (acho q n precisa especificar q é a transposta de y)
   (void) umfpack_di_solve(UMFPACK_Aat, B.outerIndexPtr(), B.innerIndexPtr(), B.valuePtr(), y.data(), c_b.data(), Numeric, null, null);
-  // */
 
 }
 
@@ -125,10 +110,7 @@ void GS::BTRAN(Eigen::VectorXd &y) {
 
 void GS::FTRAN(Eigen::VectorXd &d, Eigen::VectorXd &a) {
 
-  // resolver B_0 * d = a (equivalente a executar os passos 1, 2, 3 e 4 da FTRAN do livro)
-  // /*  
   (void) umfpack_di_solve(UMFPACK_A, B.outerIndexPtr(), B.innerIndexPtr(), B.valuePtr(), d.data(), a.data(), Numeric, null, null);
-  // */
 
   for(long unsigned i = 0; i < eta.size(); i++) {
 

@@ -19,7 +19,6 @@
 #define E2 1e-8 // it's about the choose of entering variable
 #define E3 1e-6 // Ax* = b 
 #define MAX_DEGENERATED_ITERATION 50
-#define M 1e8
 
 using Eigen::MatrixXd;
 
@@ -32,23 +31,19 @@ class Simplex {
     Simplex(Data *d, Eigen::VectorXd &x);
     ~Simplex();
 
+    void findInitialSolution();
+    bool computeInfeasibility();
+
     void solve();
     int Maximize(int newEtaCol, Eigen::VectorXd &y);
     void simplexLoop(Eigen::VectorXd &y);
 
     std::pair<int, int> chooseEnteringVariable(Eigen::VectorXd &y);
-    
     std::pair<int, double> chooseLeavingVariable(Eigen::VectorXd &d, int ent_var, int signal);
-
-    inline double getSolutionValue();
-
     void updateX(double t, int idx_ev, Eigen::VectorXd &d, int signal);
-
-    void printSolution();
-
-    void findInitialSolution();
     
-    bool computeInfeasibility();
+    void printSolution();
+    inline double getSolutionValue();
 
   private:
 

@@ -17,7 +17,7 @@ Data::Data(int m, int n, Eigen::VectorXd &c, Eigen::MatrixXd &A_dense, Eigen::Ve
 }
 
 
-void Data::changeC(bool phase) {
+void Data::changeObjFunction(bool phase) {
 
   if(phase) {
 
@@ -61,9 +61,6 @@ double Data::multiplyByRow(Eigen::VectorXd &x, int idx) {
   return value;
 
 }
-
-
-Eigen::SparseMatrix<double> Data::getA() { return A; }
 
 
 double Data::getReducedCost(int idx, Eigen::VectorXd &y) { 

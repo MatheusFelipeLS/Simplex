@@ -26,19 +26,20 @@ class Data {
     int qtRows();
     int qtCols();
 
+    void changeObjFunction(bool phase);
+    Eigen::VectorXd copyL();
+    Eigen::VectorXd copyU();
+    Eigen::VectorXd copyC();
+
+    Eigen::VectorXd getCol(int idx);
     double getReducedCost(int idx, Eigen::VectorXd &y);
     double getC(int idx);
     double getX(int idx);
     double getUB(int idx);
     double getLB(int idx);
-    Eigen::VectorXd copyL();
-    Eigen::VectorXd copyU();
-    Eigen::VectorXd copyC();
-    Eigen::VectorXd getCol(int idx);
-    double multiplyByRow(Eigen::VectorXd &x, int idx);
-    double multiplyByCol(Eigen::VectorXd &x, int idx);
     
-    Eigen::SparseMatrix<double> getA();
+    double multiplyByRow(Eigen::VectorXd &x, int idx);
+    
 
     void setLB(int idx, double value);
     void setUB(int idx, double value);
@@ -47,8 +48,6 @@ class Data {
     void restartLUC(Eigen::VectorXd &l, Eigen::VectorXd &u, Eigen::VectorXd &c);
 
     void print();
-
-    void changeC(bool phase);
 
   private:
 
@@ -59,8 +58,6 @@ class Data {
     Eigen::VectorXd c_aux;
 
     Eigen::SparseMatrix<double> A;
-
-    // Eigen::VectorXd x;
 
     Eigen::VectorXd b;
 
