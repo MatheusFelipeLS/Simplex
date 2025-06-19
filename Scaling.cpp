@@ -15,7 +15,7 @@ std::pair<double, double> Scaling::compute_min_max_row_ratio(Eigen::MatrixXd &A)
     double ratio = row.maxCoeff() / min_in_vector(row);
 
     min_ratio = std::min(ratio, min_ratio);
-    max_ratio = std::max(ratio, min_ratio);
+    max_ratio = std::max(ratio, max_ratio);
 
   }
 
@@ -32,10 +32,10 @@ std::pair<double, double> Scaling::compute_min_max_col_ratio(Eigen::MatrixXd &A)
   for(int i = 0; i < A.cols(); i++) {
 
     Eigen::VectorXd col = A.col(i);
-    double ratio = col.maxCoeff() / col.minCoeff();
+    double ratio = col.maxCoeff() / min_in_vector(col);
 
     min_ratio = std::min(ratio, min_ratio);
-    max_ratio = std::max(ratio, min_ratio);
+    max_ratio = std::max(ratio, max_ratio);
 
   }
 
@@ -52,43 +52,45 @@ void Scaling::geometric_scale(Eigen::MatrixXd &A, Eigen::MatrixXd &A_abs, Eigen:
   std::pair<double, double> min_max;
   double fac;
 
-  if (!flag) {
+  for (int i = 0; i < 2; i++) {
+    if (i == flag) {
 
-    for (int j = 0; j < m; j++) {
-      
-      Eigen::VectorXd row = A_abs.row(j);
+      for (int j = 0; j < m; j++) {
+        
+        Eigen::VectorXd row = A_abs.row(j);
 
-      min_max.first = min_in_vector(row);
-      min_max.second = row.maxCoeff();
+        min_max.first = min_in_vector(row);
+        min_max.second = row.maxCoeff();
 
-      if (min_max.second == 0) continue;
+        if (min_max.second == 0) continue;
 
-      fac = 1 / sqrt(min_max.first * min_max.second);
-      A.row(j) = A.row(j) * fac;
-      b(j) = b(j) * fac;
+        fac = 1 / sqrt(min_max.first * min_max.second);
+        A.row(j) = A.row(j) * fac;
+        b(j) = b(j) * fac;
+
+      }
+
+    } else {
+
+      for (int j = 0; j < n; j++) {
+
+        Eigen::VectorXd col = A_abs.col(j);
+
+        min_max.first = min_in_vector(col);
+        min_max.second = col.maxCoeff();      
+
+        if (min_max.second == 0) continue;
+        
+        double r = sqrt(min_max.first * min_max.second);
+        fac = 1 / r;
+        A.col(j) = A.col(j) * fac;
+        c(j) = c(j) * fac;
+        l(j) = l(j) * r;
+        u(j) = u(j) * r;
+
+      }
 
     }
-
-  } else {
-
-    for (int j = 0; j < n; j++) {
-
-      Eigen::VectorXd col = A_abs.col(j);
-
-      min_max.first = min_in_vector(col);
-      min_max.second = col.maxCoeff();      
-
-      if (min_max.second == 0) continue;
-      
-      double r = sqrt(min_max.first * min_max.second);
-      fac = 1 / r;
-      A.col(j) = A.col(j) * fac;
-      c(j) = c(j) * fac;
-      l(j) = l(j) * r;
-      u(j) = u(j) * r;
-
-    }
-
   }
 
 }
@@ -143,7 +145,7 @@ void Scaling::geometric_iterate(Eigen::MatrixXd &A, Eigen::VectorXd &b, Eigen::V
 
   std::cout << "flag: " << flag << std::endl;
 
-  for(int i = 1; i < IT; i++) {
+  for(int i = 1; i <= IT; i++) {
 
     std::cout << "iteração: " << i << std::endl;
 

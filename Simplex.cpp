@@ -4,12 +4,13 @@ Simplex::Simplex() { /* ctor */ }
 Simplex::~Simplex() { /* dtor */ }
 
 
-Simplex::Simplex(Data *d) {  
+Simplex::Simplex(Data *d, int mes) {  
   
   this->data = d;  
   this->value = 0;
   this->degenerated_iteration = 0;
   this->blands_rule = false;
+  this->max_eta_size = mes;
 
   this->x = Eigen::VectorXd::Zero(data->qtCols());
 
@@ -21,7 +22,7 @@ Simplex::Simplex(Data *d) {
   B = std::vector<int>( data->qtRows() );
   for(int i = 0; i < data->qtRows(); i++) B[i] = i + qtNonBasic;
 
-  gs = new GS(data->qtRows());
+  gs = new GS(data);
   
 }
 
@@ -41,44 +42,97 @@ Simplex::Simplex(Data *d, Eigen::VectorXd &x) {
   N = std::vector<int>( data->qtCols() - data->qtRows() );
   for(int i = 0; i < data->qtCols() - data->qtRows(); i++) N[i] = i;
 
-  gs = new GS(data->qtRows());
+  gs = new GS(data);
 }
 
 
-std::pair<int, int> Simplex::chooseEnteringVariable(Eigen::VectorXd &y) {
-  
-  // double biggest_reduced_cost = 0;
-  int biggest_reduced_cost = std::numeric_limits<int>::max();
-  int idx_biggest = -1;
-  int signal = 0;
+void Simplex::findInitialSolution() {
 
-  for(int i = 0; i < (int) N.size(); i++) {
+  int n = data->qtCols();
+  int m = data->qtRows();
 
-    double reduced_cost = data->getReducedCost(N[i], y);
-
-    if(x[ N[i] ] < data->getUB(N[i]) - E1 && reduced_cost > E1 && N[i] < biggest_reduced_cost) {
-    // if(x[ N[i] ] < data->getUB(N[i]) - E1 && reduced_cost > E1 && reduced_cost > biggest_reduced_cost) {
-
-      // biggest_reduced_cost = reduced_cost;
-      signal = 1;
-      biggest_reduced_cost = N[i];
-      idx_biggest = i;
-      
-    }
+  Eigen::VectorXd x_n(n-m);
+  Eigen::VectorXd x_b(m);
+  Eigen::MatrixXd N_matrix = MatrixXd::Zero(m, n - m);
+  for(int i = 0; i < n-m; i++) {
     
-    else if(x[ N[i] ] > data->getLB(N[i]) + E1 && reduced_cost < -E1 && N[i] < biggest_reduced_cost) {
-    // else if(x[ N[i] ] > data->getLB(N[i]) + E1 && reduced_cost < -E1 && std::abs(reduced_cost) > biggest_reduced_cost) {
+    N_matrix.col(i) = data->A.col(i);
+    if(data->getLB(i) == -INFTY && data->getUB(i) == INFTY) x_n[i] = 0;
+    else if(data->getLB(i) == -INFTY) x_n[i] = data->getUB(i);
+    else x_n[i] = data->getLB(i);
 
-      // biggest_reduced_cost = std::abs(reduced_cost);
-      signal = -1;
-      biggest_reduced_cost = N[i];
-      idx_biggest = i;
+  }
+
+  x_b = N_matrix * x_n;
+
+  x << x_n, x_b;
+
+}
+
+
+bool Simplex::computeInfeasibility() {
+  
+  int m = data->qtRows();
+  int n = data->qtCols();
+
+  double infeasibility = 0;
+  for(int i = n-m; i < n; i++) {
+
+    if(x[i] > data->getUB(i)) {
+
+      infeasibility += x[i] - data->getUB(i);
+      data->setLB(i, data->getUB(i));
+      data->setUB(i, INFTY);
+      data->setC(i, -1);
+
+    } else if(x[i] < data->getLB(i)) {
+
+      infeasibility += data->getLB(i) - x[i];
+      data->setUB(i, data->getLB(i));
+      data->setLB(i, -INFTY);
+      data->setC(i, 1);
 
     }
 
   }
 
-  return std::make_pair(idx_biggest, signal);
+  std::cout << "infeasibility: " << infeasibility << std::endl;
+
+
+
+  return (infeasibility > E1);
+}
+
+
+std::pair<int, int> Simplex::chooseEnteringVariable(Eigen::VectorXd &y) {
+  
+  int smallest_idx = std::numeric_limits<int>::max();
+  int best_i = -1;
+  int signal = 0;
+
+  for(int i = 0; i < (int) N.size(); i++) {
+
+    if(N[i] >= smallest_idx) {
+      continue;
+    }
+
+    double reduced_cost = data->getReducedCost(N[i], y);
+
+    if(x[ N[i] ] < data->getUB(N[i]) - E1 && reduced_cost > E1) {
+      signal = 1;
+      smallest_idx = N[i];
+      best_i = i;
+    }
+    
+    else if(x[ N[i] ] > data->getLB(N[i]) + E1 && reduced_cost < -E1) {
+      signal = -1;
+      smallest_idx = N[i];
+      best_i = i;
+    }
+
+  }
+
+  return std::make_pair(best_i, signal);
 
 }
 
@@ -228,6 +282,8 @@ int Simplex::Maximize(int newEtaCol, Eigen::VectorXd &y) {
     
     gs->addEtaColumn(idx_leaving_variable, d);
 
+    if(gs->qtEtaCols() == max_eta_size) gs->reinversion();
+
     std::swap(N[ idx_entering_variable ], B[ idx_leaving_variable ]);
 
     return 1;
@@ -248,11 +304,9 @@ void Simplex::solve() {
   data->changeObjFunction(true);
 
   findInitialSolution(); /* this solution won't be always feasible */
-
   Eigen::VectorXd l = data->copyL();
   Eigen::VectorXd u = data->copyU();
   Eigen::VectorXd c = data->copyC();
-
 
   int newEtaCol = 1;
   while(computeInfeasibility()) {
@@ -272,71 +326,10 @@ void Simplex::solve() {
 
   data->changeObjFunction(false);
 
-
   std::cout << "PHASE TWO\nx: " << x.transpose() << std::endl;
 
   simplexLoop(y);
 
-}
-
-
-void Simplex::findInitialSolution() {
-
-  int n = data->qtCols();
-  int m = data->qtRows();
-
-  Eigen::VectorXd x_n(n-m);
-  Eigen::VectorXd x_b(m);
-
-  for(int i = 0; i < n-m; i++) {
-    
-    if(data->getLB(i) > -INFTY) x_n[i] = data->getLB(i);
-    else if(data->getUB(i) < INFTY) x_n[i] = data->getUB(i);
-    else x_n[i] = 0;
-
-  }
-
-
-  for(int i = 0; i < m; i++) {
-    x_b(i) = data->multiplyByRow(x_n, i);
-  }
-
-  x << x_n, x_b;
-
-}
-
-
-bool Simplex::computeInfeasibility() {
-  
-  int m = data->qtRows();
-  int n = data->qtCols();
-
-  double infeasibility = 0;
-  for(int i = n-m; i < n; i++) {
-
-    if(x[i] > data->getUB(i)) {
-
-      infeasibility += x[i] - data->getUB(i);
-      data->setLB(i, data->getUB(i));
-      data->setUB(i, INFTY);
-      data->setC(i, -1);
-
-    } else if(x[i] < data->getLB(i)) {
-
-      infeasibility += data->getLB(i) - x[i];
-      data->setUB(i, data->getLB(i));
-      data->setLB(i, -INFTY);
-      data->setC(i, 1);
-
-    }
-
-  }
-
-  std::cout << "infeasibility: " << infeasibility << std::endl;
-
-
-
-  return (infeasibility > E1);
 }
 
 

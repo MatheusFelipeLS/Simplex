@@ -37,6 +37,7 @@ class Data {
     double getX(int idx);
     double getUB(int idx);
     double getLB(int idx);
+    Eigen::SparseMatrix<double> getA();
     
     double multiplyByRow(Eigen::VectorXd &x, int idx);
     
@@ -48,7 +49,10 @@ class Data {
     void restartLUC(Eigen::VectorXd &l, Eigen::VectorXd &u, Eigen::VectorXd &c);
 
     void print();
+    void printC();
+    void printA();
 
+    Eigen::SparseMatrix<double> A;
   private:
 
     int m;
@@ -57,7 +61,6 @@ class Data {
     Eigen::VectorXd c;
     Eigen::VectorXd c_aux;
 
-    Eigen::SparseMatrix<double> A;
 
     Eigen::VectorXd b;
 

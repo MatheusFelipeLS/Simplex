@@ -7,15 +7,14 @@
 #include "Eigen/Dense"
 #include "Eigen/Sparse"
 #include "Eigen/src/Core/Matrix.h"
-
-#define MAX_ETA_SIZE 20
+#include "Data.h"
 
 using Eigen::MatrixXd;
 
 class GS {
   public:
     GS();
-    GS(int n);
+    GS(Data* data);
 
     ~GS();
 
@@ -28,11 +27,15 @@ class GS {
     void addEtaColumn(int eta_idx, Eigen::VectorXd &eta_column);
 
     void reinversion();
+    void reinversion(std::vector<int> &B);
+
+    int qtEtaCols();
 
   private:
     std::vector<std::pair<int, Eigen::VectorXd>> eta;
 
     Eigen::SparseMatrix<double> B;
+    Eigen::SparseMatrix<double> A;
 
     double *null;
 		void *Symbolic, *Numeric ;

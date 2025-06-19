@@ -50,6 +50,9 @@ double Data::getLB(int idx) { return l[idx]; }
 
 Eigen::VectorXd Data::getCol(int idx) { return A.col(idx); }
 
+Eigen::SparseMatrix<double> Data::getA() {
+  return A;
+}
 
 double Data::multiplyByRow(Eigen::VectorXd &x, int idx) {
 
@@ -102,14 +105,21 @@ void Data::print() {
   std::cout << "l: " << l.transpose() << "\nu: " << u.transpose() << "\nc: " << c.transpose() << "\n";
 }
 
+void Data::printC() {
+  std::cout << "c: " << c.transpose() << "\n";
+}
 
-void Data::restartLUC(Eigen::VectorXd &l, Eigen::VectorXd &u, Eigen::VectorXd &c) {
+void Data::printA() {
+  std::cout << "A: " << A << "\n";
+}
 
-  for(int i = n-m; i < n; i++) this->l[i] = l[i];
+void Data::restartLUC(Eigen::VectorXd &lb, Eigen::VectorXd &ub, Eigen::VectorXd &of) {
 
-  for(int i = n-m; i < n; i++) this->u[i] = u[i];
+  for(int i = n-m; i < n; i++) this->l[i] = lb[i];
 
-  for(int i = n-m; i < n; i++) this->c[i] = c[i];
+  for(int i = n-m; i < n; i++) this->u[i] = ub[i];
+
+  for(int i = n-m; i < n; i++) this->c[i] = of[i];
   
 }
 

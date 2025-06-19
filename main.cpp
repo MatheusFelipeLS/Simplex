@@ -118,7 +118,7 @@ int main(int argc, char** argv) {
 
   Data *data = new Data(m, n, c, A_dense, b, l, u);
 
-  Simplex s = Simplex(data);
+  Simplex s = Simplex(data, 20);
 
   s.solve();
 

@@ -3,11 +3,11 @@
 GS::GS() { /* ctor */ }
 
 
-GS::GS(int n) {
+GS::GS(Data *data) {
+  this->A = data->getA();
+  this->B = Eigen::MatrixXd::Identity(data->qtRows(), data->qtRows()).sparseView() * (-1);
 
-  this->B = Eigen::MatrixXd::Identity(n, n).sparseView() * (-1);
-
-  LUDecomposition(n);
+  LUDecomposition(data->qtRows());
 
 }
 
@@ -40,12 +40,29 @@ void GS::reinversion() {
   LUDecomposition(n);
 }
 
+void GS::reinversion(std::vector<int> &base) {
+  
+  int n = B.rows();
+
+  for(int i = 0; i < (int) base.size(); ++i) {
+    B.col(i) = A.col(base[i]);
+  }
+
+  this->eta.clear();
+
+  umfpack_di_free_symbolic(&this->Symbolic);
+  umfpack_di_free_numeric(&this->Numeric);
+
+  LUDecomposition(n);
+}
+
+int GS::qtEtaCols() {
+  return eta.size();
+}
 
 void GS::addEtaColumn(int eta_idx, Eigen::VectorXd &eta_column) {
 
   this->eta.push_back(std::make_pair(eta_idx, eta_column));
-
-  if(this->eta.size() == MAX_ETA_SIZE) reinversion();
 
 }
 
@@ -74,6 +91,8 @@ void GS::LUDecomposition(int n) {
 
 void GS::BTRAN(Eigen::VectorXd &y) {
 
+  if (y.isZero()) return;
+
   for(int i = this->eta.size()-1; i >= 0; i--) {
 
     for(int j = 0; j < this->eta[i].first; j++) {
@@ -91,7 +110,7 @@ void GS::BTRAN(Eigen::VectorXd &y) {
   Eigen::VectorXd c_b(y.size());
   for(int i = 0; i < y.size(); i++) c_b[i] = y[i];
 
-  (void) umfpack_di_solve(UMFPACK_Aat, B.outerIndexPtr(), B.innerIndexPtr(), B.valuePtr(), y.data(), c_b.data(), Numeric, null, null);
+  (void) umfpack_di_solve(UMFPACK_At, B.outerIndexPtr(), B.innerIndexPtr(), B.valuePtr(), y.data(), c_b.data(), Numeric, null, null);
 
 }
 

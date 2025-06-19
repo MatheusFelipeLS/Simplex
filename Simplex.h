@@ -27,7 +27,7 @@ class Simplex {
   public:
   
     Simplex();
-    Simplex(Data *d);
+    Simplex(Data *d, int mes);
     Simplex(Data *d, Eigen::VectorXd &x);
     ~Simplex();
 
@@ -60,6 +60,8 @@ class Simplex {
 
     int degenerated_iteration;
     bool blands_rule;
+
+    int max_eta_size;
 
 };
 
