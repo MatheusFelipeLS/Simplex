@@ -66,8 +66,8 @@ double Data::multiplyByRow(Eigen::VectorXd &x, int idx) {
 }
 
 
-double Data::getReducedCost(int idx, Eigen::VectorXd &y) { 
-  return c[idx] - (y.transpose() * A.col(idx)); 
+Eigen::VectorXd Data::getReducedCosts(std::vector<int> &N, Eigen::VectorXd &y) { 
+  return c.transpose() - y.transpose() * A;
 }
 
 

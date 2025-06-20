@@ -32,7 +32,7 @@ class Data {
     Eigen::VectorXd copyC();
 
     Eigen::VectorXd getCol(int idx);
-    double getReducedCost(int idx, Eigen::VectorXd &y);
+    Eigen::VectorXd getReducedCosts(std::vector<int> &N, Eigen::VectorXd &y);
     double getC(int idx);
     double getX(int idx);
     double getUB(int idx);

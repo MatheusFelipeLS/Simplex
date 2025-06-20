@@ -8,8 +8,6 @@ Simplex::Simplex(Data *d, int mes) {
   
   this->data = d;  
   this->value = 0;
-  this->degenerated_iteration = 0;
-  this->blands_rule = false;
   this->max_eta_size = mes;
 
   this->x = Eigen::VectorXd::Zero(data->qtCols());
@@ -31,8 +29,6 @@ Simplex::Simplex(Data *d, Eigen::VectorXd &x) {
   
   this->data = d;
   this->value = 0;
-  this->degenerated_iteration = 0;
-  this->blands_rule = false;
 
   this->x = x;
 
@@ -110,21 +106,21 @@ std::pair<int, int> Simplex::chooseEnteringVariable(Eigen::VectorXd &y) {
   int best_i = -1;
   int signal = 0;
 
+  auto reduced_cost = data->getReducedCosts(N, y);
+
   for(int i = 0; i < (int) N.size(); i++) {
 
-    if(N[i] >= smallest_idx) {
+    if(N[i] > smallest_idx) {
       continue;
     }
 
-    double reduced_cost = data->getReducedCost(N[i], y);
-
-    if(x[ N[i] ] < data->getUB(N[i]) - E1 && reduced_cost > E1) {
+    if(x[ N[i] ] < data->getUB(N[i]) - E1 && reduced_cost[ N[i] ] > E1) {
       signal = 1;
       smallest_idx = N[i];
       best_i = i;
     }
     
-    else if(x[ N[i] ] > data->getLB(N[i]) + E1 && reduced_cost < -E1) {
+    else if(x[ N[i] ] > data->getLB(N[i]) + E1 && reduced_cost[ N[i] ] < -E1) {
       signal = -1;
       smallest_idx = N[i];
       best_i = i;
@@ -139,44 +135,33 @@ std::pair<int, int> Simplex::chooseEnteringVariable(Eigen::VectorXd &y) {
 
 std::pair<int, double> Simplex::chooseLeavingVariable(Eigen::VectorXd &d, int ent_var, int signal) {
 
-  double t;
+  double t = 0;
   double maxt = INFTY;
   int idx_leaving_variable = -1;
 
-
   if(signal > 0) maxt = (data->getUB(ent_var) - x[ent_var]);
-
   else maxt = (x[ent_var] - data->getLB(ent_var));
 
 
   for(int i = 0; i < (int) B.size(); i++) {
-
-    double x_b = x[ B[i] ];
 
     if(std::abs(d[i]) <= E2) {
 
       continue;
     
     } else if( (signal > 0 && d[i] > 0) || (signal < 0 && d[i] < 0) ) {
-
-      t = signal * (x_b - (data->getLB( B[i] )) ) / d[i];
-      if((t >= 0 && t < maxt) ) {
-        maxt = t;
-        idx_leaving_variable = i;
-      }
-
+      t = signal * (x[ B[i] ] - data->getLB( B[i] )) / d[i];
     } else if( (signal > 0 && d[i] < 0) || (signal < 0 && d[i] > 0) ) {
-      
-      t = signal * (x_b - (data->getUB( B[i] )) ) / d[i];
-      if( (t >= 0 && t < maxt) ) {
-        maxt = t;
-        idx_leaving_variable = i;
-      }
+      t = signal * (x[ B[i] ] - data->getUB( B[i] )) / d[i];
+    }
 
+    if(t >= 0 && t <= maxt) {
+      idx_leaving_variable = i;
+      maxt = t;
     }
 
   }
-  
+
   return std::make_pair(idx_leaving_variable, maxt);
 
 }
@@ -186,32 +171,12 @@ void Simplex::updateX(double t, int idx_ev, Eigen::VectorXd &d, int signal) {
     
   x[ idx_ev ] += (t * signal);
   
-  for(int i = 0; i < (int) B.size(); i++) x[ B[i] ] -= ( (t * d[i]) * signal );
+  for(int i = 0; i < (int) B.size(); i++) x[ B[i] ] -=  t * d[i] * signal;
 
 }
 
 
-void Simplex::simplexLoop(Eigen::VectorXd &y) {
-
-  int newEtaCol = 1;
-
-  int count = 0;
-  while(true) {
-    count++;
-    std::cout << "Iterações: " << count << "\n";
-
-    newEtaCol = Maximize(newEtaCol, y);
-
-    if(newEtaCol > 1) {
-      break;
-    }
-
-  }
-
-}
-
-
-int Simplex::Maximize(int newEtaCol, Eigen::VectorXd &y) {
+int Simplex::changeBase(int newEtaCol, Eigen::VectorXd &y) {
 
   Eigen::VectorXd d(data->qtRows());
   Eigen::VectorXd aux;
@@ -246,37 +211,9 @@ int Simplex::Maximize(int newEtaCol, Eigen::VectorXd &y) {
     this->value = t;
     return 2;
 
-  } else if(t < E1) {
-
-    degenerated_iteration++;
-
-    if(degenerated_iteration == MAX_DEGENERATED_ITERATION) {
-      blands_rule = true;
-    }
-
-  } else {
-    
-    blands_rule = false;
-    degenerated_iteration = 0;
-    
-  }
+  } 
 
   updateX(t, N[idx_entering_variable], d, signal);  
-
-  double rowSum;
-  for(int i = 0; i < data->qtRows(); i++) {
-
-    rowSum = data->multiplyByRow(x, i) - x[i+data->qtCols()-data->qtRows()];
-
-    if(std::abs(rowSum) > E3) {
-
-      gs->reinversion();
-      break;
-
-    }
-
-  }
-
 
   if(idx_leaving_variable > -0.1) {
     
@@ -289,13 +226,30 @@ int Simplex::Maximize(int newEtaCol, Eigen::VectorXd &y) {
     return 1;
 
   } else {
-
     return 0;
-    
   }
 
 }
 
+
+void Simplex::simplexLoop(Eigen::VectorXd &y) {
+
+  int newEtaCol = 1;
+
+  int count = 0;
+  while(true) {
+    count++;
+    std::cout << "Iterações: " << count << "\n";
+
+    newEtaCol = changeBase(newEtaCol, y);
+
+    if(newEtaCol > 1) {
+      break;
+    }
+
+  }
+
+}
 
 void Simplex::solve() {
 
@@ -311,7 +265,7 @@ void Simplex::solve() {
   int newEtaCol = 1;
   while(computeInfeasibility()) {
 
-    newEtaCol = Maximize(newEtaCol, y);
+    newEtaCol = changeBase(newEtaCol, y);
 
     if(newEtaCol == 2) {
       status = "Unfeasible";
@@ -326,7 +280,7 @@ void Simplex::solve() {
 
   data->changeObjFunction(false);
 
-  std::cout << "PHASE TWO\nx: " << x.transpose() << std::endl;
+  // std::cout << "PHASE TWO\nx: " << x.transpose() << std::endl;
 
   simplexLoop(y);
 
@@ -339,7 +293,7 @@ void Simplex::printSolution() {
 
   if(status == "Optimal") {
     for(int i = 0; i < this->data->qtCols() - this->data->qtRows(); i++) {
-      std::cout << "x_" << i+1 << ": " << x[i] << ";  ";
+      std::cout << "x_" << i+1 << ": " << x[i] << std::endl;
       value += x[i] * data->getC(i);
     }
     std::cout << "\n"; 

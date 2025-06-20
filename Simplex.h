@@ -35,7 +35,7 @@ class Simplex {
     bool computeInfeasibility();
 
     void solve();
-    int Maximize(int newEtaCol, Eigen::VectorXd &y);
+    int changeBase(int newEtaCol, Eigen::VectorXd &y);
     void simplexLoop(Eigen::VectorXd &y);
 
     std::pair<int, int> chooseEnteringVariable(Eigen::VectorXd &y);
@@ -57,9 +57,6 @@ class Simplex {
     Eigen::VectorXd x;
     std::vector<int> B;
     std::vector<int> N; 
-
-    int degenerated_iteration;
-    bool blands_rule;
 
     int max_eta_size;
 
