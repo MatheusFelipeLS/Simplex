@@ -3,11 +3,12 @@
 GS::GS() { /* ctor */ }
 
 
-GS::GS(Data *data) {
-  this->A = data->getA();
-  this->B = Eigen::MatrixXd::Identity(data->qtRows(), data->qtRows()).sparseView() * (-1);
+GS::GS(Data &data) {
+  this->A = data.getA();
+  this->B = Eigen::MatrixXd::Identity(data.qtRows(), data.qtRows()).sparseView() * (-1);
+  this->null = (double *) NULL;
 
-  LUDecomposition(data->qtRows());
+  LUDecomposition(data.qtRows());
 
 }
 
@@ -17,28 +18,6 @@ GS::~GS() {
   umfpack_di_free_symbolic(&Numeric);
 }
 
-
-void GS::reinversion() {
-  
-  int n = this->eta[0].second.size();
-
-  Eigen::MatrixXd B_dense = this->B.toDense();
-
-  for(int i = 0; i < (int) this->eta.size(); ++i) {
-    
-    B_dense.col( this->eta[i].first ) = B_dense * this->eta[i].second;
-  
-  }
-
-  this->B = B_dense.sparseView();
-
-  this->eta.clear();
-
-  umfpack_di_free_symbolic (&this->Symbolic);
-  umfpack_di_free_numeric (&this->Numeric);
-
-  LUDecomposition(n);
-}
 
 void GS::reinversion(std::vector<int> &base) {
   
@@ -68,8 +47,6 @@ void GS::addEtaColumn(int eta_idx, Eigen::VectorXd &eta_column) {
 
 
 void GS::LUDecomposition(int n) {
-
-  this->null = (double *) NULL ;
   
   (void) umfpack_di_symbolic (n,n, B.outerIndexPtr(), B.innerIndexPtr(), B.valuePtr(), &Symbolic, null, null);
 

@@ -26,9 +26,7 @@ class Simplex {
 
   public:
   
-    Simplex();
-    Simplex(Data *d, int mes);
-    Simplex(Data *d, Eigen::VectorXd &x);
+    Simplex(Data &d, int mes); // mes = MAX ETA SIZE
     ~Simplex();
 
     void findInitialSolution();
@@ -43,14 +41,14 @@ class Simplex {
     void updateX(double t, int idx_ev, Eigen::VectorXd &d, int signal);
     
     void printSolution();
-    inline double getSolutionValue();
+    double getSolutionValue();
 
   private:
 
     double value; 
     std::string status;
 
-    Data *data;
+    Data &data;
 
     GS *gs;
 
@@ -58,7 +56,10 @@ class Simplex {
     std::vector<int> B;
     std::vector<int> N; 
 
-    int max_eta_size;
+    Eigen::VectorXd d;
+    Eigen::VectorXd aux;
+
+    int MAX_ETA_SIZE;
 
 };
 

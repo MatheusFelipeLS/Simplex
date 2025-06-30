@@ -70,7 +70,6 @@ Eigen::VectorXd Data::getReducedCosts(std::vector<int> &N, Eigen::VectorXd &y) {
   return c.transpose() - y.transpose() * A;
 }
 
-
 void Data::setLB(int idx, double value) {
   l[idx] = value;
 }

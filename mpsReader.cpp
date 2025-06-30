@@ -256,7 +256,7 @@ void mpsReader::_extractData(ifstream &readFile)
 
 
     Scaling sc;
-    sc.geometric_iterate(Araw, braw, c, lb, ub); 
+    if(true) sc.geometric_iterate(Araw, braw, c, lb, ub); 
 
 
     _splitRaw(Araw, braw, c, A, b);

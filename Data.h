@@ -34,7 +34,6 @@ class Data {
     Eigen::VectorXd getCol(int idx);
     Eigen::VectorXd getReducedCosts(std::vector<int> &N, Eigen::VectorXd &y);
     double getC(int idx);
-    double getX(int idx);
     double getUB(int idx);
     double getLB(int idx);
     Eigen::SparseMatrix<double> getA();

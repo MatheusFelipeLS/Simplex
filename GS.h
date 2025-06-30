@@ -14,7 +14,7 @@ using Eigen::MatrixXd;
 class GS {
   public:
     GS();
-    GS(Data* data);
+    GS(Data &data);
 
     ~GS();
 
@@ -26,7 +26,6 @@ class GS {
 
     void addEtaColumn(int eta_idx, Eigen::VectorXd &eta_column);
 
-    void reinversion();
     void reinversion(std::vector<int> &B);
 
     int qtEtaCols();

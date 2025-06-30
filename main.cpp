@@ -116,7 +116,7 @@ int main(int argc, char** argv) {
 
   }
 
-  Data *data = new Data(m, n, c, A_dense, b, l, u);
+  Data data = Data(m, n, c, A_dense, b, l, u);
 
   Simplex s = Simplex(data, 20);
 
@@ -124,7 +124,7 @@ int main(int argc, char** argv) {
 
   s.printSolution();
 
-  delete data;
+  std::cout << "cost: " << s.getSolutionValue() << std::endl;
 
 	return 0;
 
